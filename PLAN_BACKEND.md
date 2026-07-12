@@ -1,12 +1,14 @@
 # PLAN_BACKEND.md — Person A: Backend & Pipeline
 
-> Your half of **AI Chief of Staff for Solopreneurs** (BUIDL_OPC_Hackathon_SG, AI category).
+> Your half of **Revenue Chief: Explainable Revenue Triage for One-Person Companies**
+> (BUIDL_OPC_Hackathon_SG, AI category).
 > Full context in [PLAN.md](PLAN.md); this is everything *you* need. Person B builds the UI in
 > parallel against the frozen contract — don't change field names without telling them.
 
 **What the product does (one line for context):** a solo founder pastes a messy weekly
-brain-dump; a 4-stage LLM pipeline extracts every commitment, scores each by revenue-proximity
-and urgency, plans today (do-now/defer/blocked), and drafts the replies they owe.
+brain-dump; a 4-stage pipeline extracts every commitment, classifies its money motion, computes
+a revenue-first priority, selects three Money Moves, parks or unblocks everything else, and
+prepares only the messages required to execute that decision.
 
 ## Your scope
 
@@ -31,18 +33,33 @@ your `pipeline.py` + `main.py` at the 15:15 integration point; they deploy.
 
 ```jsonc
 {
-  "items":  [ { "id", "item", "type": "task|email_owed|deadline", "due_date": "ISO|null", "context" } ],
-  "scored": [ { ...item fields, "revenue_proximity": 1-5, "urgency": 1-5, "reason", "priority": int } ],  // sorted desc by priority
-  "plan":   { "do_now": ["id",...], "defer": [{"id","why"}], "blocked": [{"id","why"}] },
-  "drafts": [ { "id", "subject", "body" } ]   // one per email_owed item
+  "items": [
+    { "id", "item", "type": "task|email_owed|deadline", "due_date": "ISO|null",
+      "stated_value": "string|null", "source_text", "context" }
+  ],
+  "scored": [
+    { ...item fields, "revenue_motion": "collect|close|deliver|retain|grow|operate",
+      "revenue_proximity": 1-5, "urgency": 1-5, "evidence", "cost_of_delay",
+      "missing_fact": "string|null", "priority": int }
+  ],
+  "plan": {
+    "money_moves": [{"id","why_today","next_action","done_when"}],
+    "park": [{"id","why_safe"}],
+    "blocked": [{"id","blocker","unblock_action","message_needed":bool}]
+  },
+  "drafts": [ { "id", "purpose": "money_move|unblock", "subject", "body" } ]
 }
 ```
 
 Invariants Person B (and the demo) rely on:
 - `scored` is **pre-sorted** by `priority` descending. The frontend renders it in array order.
-- Every `id` appears in **exactly one** of `plan.do_now / defer / blocked` (exact partition).
-- `drafts` has one entry per `email_owed` item; `drafts` may be `[]` if there are none.
-- `priority` is computed **server-side** as `revenue_proximity*2 + urgency` — never ask the model for it.
+- `source_text` and `evidence` are verbatim substrings of the submitted brain-dump. A non-null
+  `stated_value` must also be grounded in that input; never accept an invented amount.
+- Every `id` appears in **exactly one** of `plan.money_moves / park / blocked`; Money Moves has
+  at most three entries and contains no blocked item.
+- `drafts` contains only server-selected Money Move replies and `message_needed` unblock
+  messages. Parked and unselected email items receive no draft; `drafts` may be `[]`.
+- `priority` is computed **server-side** as `revenue_proximity*3 + urgency` — never ask the model for it.
 
 If you must change any field name, update `mock/process.json` in the same commit and tell Person B.
 
@@ -52,11 +69,12 @@ If you must change any field name, update `mock/process.json` in the same commit
    `mock/process.json` + an OpenAI key. Set up your Python env, put the key in a local `.env`,
    confirm `uvicorn` serves the health stub. You now have everything to work in isolation.
 2. **Pipeline (11:20–13:15).** Implement `run_pipeline` (sketch below). Hard-code the sample
-   brain-dump in a `scratch_test.py` and iterate: `python -m scratch_test` should print a
-   payload with all four keys populated.
-3. **Prompt tuning + validation (13:15–14:00).** Improve weak reasons / generic drafts. Add
-   semantic checks: score ranges 1–5, IDs conserved across stages, PLAN buckets partition
-   exactly. On violation, raise so it fails loud (better than a broken demo).
+   brain-dump from [PLAN.md §5](PLAN.md) verbatim in a `scratch_test.py`; evidence validation
+   depends on its exact text. Iterate until `python -m scratch_test` prints all four keys.
+3. **Prompt tuning + validation (13:15–14:00).** Tune money-motion labels, grounded evidence,
+   cost of delay, next actions, and selected drafts. Validate 1–5 score ranges; ID conservation;
+   evidence/source/value grounding; ≤3 Money Moves; exact DECIDE partition; and exact draft
+   target ids/purposes. On violation, raise so it fails loud (better than a broken demo).
 4. **Endpoint hardening (14:00–15:15).** `POST /process` in `main.py`, try/except returning a
    clean 500 naming the failing stage. `curl` locally (uvicorn) until green — your output must
    match the frozen contract exactly.
@@ -69,7 +87,7 @@ If you must change any field name, update `mock/process.json` in the same commit
 
 ## The 4 system prompts, Pydantic models, and pipeline
 
-The full prompt text (PREAMBLE + EXTRACT / SCORE / PLAN / DRAFT) is in [PLAN.md §3](PLAN.md).
+The full prompt text (PREAMBLE + EXTRACT / SCORE / DECIDE / PREPARE) is in [PLAN.md §3](PLAN.md).
 Paste those verbatim as the string constants. The pipeline and models:
 
 ```python
@@ -84,19 +102,36 @@ MODEL = "gpt-5.6-sol"   # fallback if latency/access bites: confirm in Block 0
 class Item(BaseModel):
     id: str; item: str
     type: Literal["task", "email_owed", "deadline"]
-    due_date: str | None; context: str
+    due_date: str | None
+    stated_value: str | None
+    source_text: str
+    context: str
 class ExtractOutput(BaseModel):
     items: list[Item]
 class ScoredItem(Item):
-    revenue_proximity: int; urgency: int; reason: str
+    revenue_motion: Literal["collect", "close", "deliver", "retain", "grow", "operate"]
+    revenue_proximity: int
+    urgency: int
+    evidence: str
+    cost_of_delay: str
+    missing_fact: str | None
 class ScoreOutput(BaseModel):
     scored: list[ScoredItem]
-class BucketItem(BaseModel):
-    id: str; why: str
-class PlanOutput(BaseModel):
-    do_now: list[str]; defer: list[BucketItem]; blocked: list[BucketItem]
+class MoneyMove(BaseModel):
+    id: str; why_today: str; next_action: str; done_when: str
+class ParkItem(BaseModel):
+    id: str; why_safe: str
+class BlockedItem(BaseModel):
+    id: str; blocker: str; unblock_action: str; message_needed: bool
+class DecideOutput(BaseModel):
+    money_moves: list[MoneyMove]
+    park: list[ParkItem]
+    blocked: list[BlockedItem]
 class Draft(BaseModel):
-    id: str; subject: str; body: str
+    id: str
+    purpose: Literal["money_move", "unblock"]
+    subject: str
+    body: str
 class DraftOutput(BaseModel):
     drafts: list[Draft]
 
@@ -117,22 +152,58 @@ def run_pipeline(braindump: str, today: str) -> dict:
     pre = PREAMBLE.format(TODAY=today)
 
     items = [i.model_dump(mode="json") for i in _call(pre + EXTRACT, braindump, ExtractOutput).items]
+    assert len({i["id"] for i in items}) == len(items), "EXTRACT ids must be unique"
+    for item in items:
+        assert item["source_text"] in braindump, "source_text must be verbatim input"
+        if item["stated_value"] is not None:
+            assert item["stated_value"] in braindump, "stated_value must be verbatim input"
 
     scored = [s.model_dump(mode="json")
               for s in _call(pre + SCORE, json.dumps({"items": items}), ScoreOutput).scored]
+    assert len(scored) == len(items), "SCORE must return exactly one row per item"
+    assert {s["id"] for s in scored} == {i["id"] for i in items}, "SCORE must conserve ids"
+    extracted_by_id = {i["id"]: i for i in items}
     for s in scored:
         assert 1 <= s["revenue_proximity"] <= 5 and 1 <= s["urgency"] <= 5, "score out of range"
-        s["priority"] = s["revenue_proximity"] * 2 + s["urgency"]
+        for field in ("item", "type", "due_date", "stated_value", "source_text", "context"):
+            assert s[field] == extracted_by_id[s["id"]][field], f"SCORE changed {field}"
+        assert s["evidence"] in s["source_text"], "evidence must come from source_text"
+        s["priority"] = s["revenue_proximity"] * 3 + s["urgency"]
     scored.sort(key=lambda s: s["priority"], reverse=True)
 
-    plan = _call(pre + PLAN, json.dumps({"scored": scored}), PlanOutput).model_dump(mode="json")
-    bucketed = set(plan["do_now"]) | {b["id"] for b in plan["defer"]} | {b["id"] for b in plan["blocked"]}
-    assert bucketed == {s["id"] for s in scored}, "PLAN buckets must partition all ids exactly"
+    plan = _call(pre + DECIDE, json.dumps({"scored": scored}), DecideOutput).model_dump(mode="json")
+    assert len(plan["money_moves"]) <= 3, "DECIDE may select at most three Money Moves"
+    bucket_ids = (
+        [m["id"] for m in plan["money_moves"]]
+        + [p["id"] for p in plan["park"]]
+        + [b["id"] for b in plan["blocked"]]
+    )
+    expected_ids = {s["id"] for s in scored}
+    assert len(bucket_ids) == len(set(bucket_ids)), "DECIDE buckets overlap"
+    assert set(bucket_ids) == expected_ids, "DECIDE buckets must partition all ids"
 
-    emails = [s for s in scored if s["type"] == "email_owed"]
-    drafts = ([d.model_dump(mode="json")
-               for d in _call(pre + DRAFT, json.dumps({"items": emails}), DraftOutput).drafts]
-              if emails else [])
+    by_id = {s["id"]: s for s in scored}
+    targets = []
+    for move in plan["money_moves"]:
+        item = by_id[move["id"]]
+        if item["type"] == "email_owed":
+            targets.append({"purpose": "money_move", "item": item, "decision": move})
+    for blocked in plan["blocked"]:
+        if blocked["message_needed"]:
+            targets.append({
+                "purpose": "unblock",
+                "item": by_id[blocked["id"]],
+                "decision": blocked,
+            })
+
+    drafts = []
+    if targets:
+        drafts = [d.model_dump(mode="json")
+                  for d in _call(pre + PREPARE, json.dumps({"targets": targets}), DraftOutput).drafts]
+        expected_targets = {(t["item"]["id"], t["purpose"]) for t in targets}
+        actual_targets = {(d["id"], d["purpose"]) for d in drafts}
+        assert len(drafts) == len(actual_targets) == len(targets), "PREPARE targets must be unique"
+        assert actual_targets == expected_targets, "PREPARE must draft exactly the selected targets"
 
     return {"items": items, "scored": scored, "plan": plan, "drafts": drafts}
 ```
@@ -187,7 +258,9 @@ curl -s localhost:8000/health                            # {"status":"ok"}
 curl -s -X POST localhost:8000/process -H 'Content-Type: application/json' \
   -d '{"braindump":"<sample>","today":"2026-07-12"}' | jq 'keys'   # ["drafts","items","plan","scored"]
 ```
-`scored` sorted by `priority` desc; PLAN buckets partition all ids; ≥1 draft references the
-sample's specifics (Sarah / annual pricing), not a generic "thanks for reaching out". The live
-alias verification happens jointly after Person B deploys — your job is to make the *local* curl
-match the frozen contract exactly.
+`scored` is sorted by `priority` desc; `source_text`, `evidence`, and stated values are grounded;
+Money Moves/Park/Blocked partition every id exactly; Acme/Nordic/Meridian are the three moves;
+Dave has a message-needed unblock action; and drafts exist only for selected targets. The Acme
+draft references Sarah, S$12,000/year, 10%, and Friday; no podcast or recruiter draft exists.
+The live alias verification happens jointly after Person B deploys — your job is to make the
+*local* curl match the frozen contract exactly.

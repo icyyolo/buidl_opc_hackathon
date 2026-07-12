@@ -1,4 +1,4 @@
-# PLAN.md — AI Chief of Staff for Solopreneurs
+# PLAN.md — Revenue Chief: Explainable Revenue Triage for One-Person Companies
 
 > **Event:** BUIDL_OPC_Hackathon_SG (Claude SG Community × amber.ac × Amber Group). Category: AI.
 > **Theme:** Next-generation One Person Companies via agentic services.
@@ -7,7 +7,7 @@
 
 **Standing assumptions (chosen, not asked — override if wrong):**
 - **Model:** OpenAI `gpt-5.6-sol` for all four stages — the current latest flagship model as verified against OpenAI's model guidance on 2026-07-12. Set via one `MODEL` constant. All calls use the Responses API with strict Structured Outputs backed by Pydantic response models. *(Note: this is a Claude-community hackathon — OpenAI is a deliberate, accepted choice; provider access must be confirmed in Block 0.)*
-- **No streaming or simulated progress.** One `POST /api/process` runs the pipeline and returns the complete result. While it is pending, the UI shows one honest loading state ("Analyzing your commitments…"); when it completes, all result sections render immediately. No staged reveal or fabricated intermediate events.
+- **No streaming or simulated progress.** One `POST /api/process` runs the pipeline and returns the complete result. While it is pending, the UI shows one honest loading state ("Finding today's Money Moves…"); when it completes, all result sections render immediately. No staged reveal or fabricated intermediate events.
 - **Deploy:** single Vercel project, same-origin, `builds`/`routes` legacy schema (KB-verified). Deploy from WSL via `npx vercel --prod`.
 - **State:** none persisted. Paste → process → render. No DB, no auth, no accounts.
 - **Date handling:** "today" is injected into prompts as an ISO string from the server clock so `due_date` reasoning is grounded. Demo machine timezone = SGT.
@@ -16,7 +16,11 @@
 
 ## 1. Problem + Solution (pitch paragraph)
 
-Solo founders are one-person companies: they *are* sales, ops, support, and delivery at once. With no ops team, the revenue-generating work that only they can do gets buried under admin — unanswered client emails, scattered tasks, deadlines creeping up — and there's nobody to triage the chaos and say *what to do next*. Existing "AI assistants" are passive chatbots: you have to know what to ask, and they don't reason about what actually matters (revenue). **AI Chief of Staff** is an operating layer, not a chatbot. The founder pastes a raw weekly brain-dump; the agent runs a 4-stage pipeline that extracts every commitment, scores each by revenue-proximity and urgency, produces a do-now/defer/blocked plan for today, and writes ready-to-send draft replies to the clients they owe. The founder just reviews and hits send. One person, the output of a small ops team — and every ranking shows its reason, so it's a legible operator, not a black box.
+Solo founders do not need another task list — they need to know which commitment changes cash today. **Revenue Chief** turns one messy founder brain-dump into three **Money Moves**. It extracts every obligation, classifies it as **Collect, Close, Deliver, Retain, Grow, or Operate**, then ranks it using revenue proximity and urgency. Every decision shows the source evidence and the cost of waiting. Safe work is deliberately parked, blockers get a concrete unblock action, and the selected client replies are drafted using the founder's actual details. No integrations or setup: paste the chaos, inspect the economic logic, and act.
+
+### Competitive wedge
+
+Calendar planners schedule already-known tasks. Inbox assistants triage email. Connected AI chiefs of staff build persistent context across apps. Revenue Chief makes a narrower promise: **one unstructured, cross-domain founder dump becomes an auditable revenue decision in under 30 seconds**. Its defensible combination is zero-setup intake, explicit revenue-motion classification, deterministic revenue-first scoring, source-grounded reasoning, complete Money Moves/Parked/Blocked triage, and action-ready messages. The novelty claim is this complete opinionated workflow — not the generic "AI chief of staff," "brain dump to plan," or "explainable ranking" categories.
 
 ---
 
@@ -31,12 +35,12 @@ Solo founders are one-person companies: they *are* sales, ops, support, and deli
              ┌───────────────────────────┼───────────────────────────────────────────┐
              ▼                           ▼                        ▼                    ▼
      ┌───────────────┐          ┌────────────────┐      ┌────────────────┐    ┌────────────────┐
-     │ 1. EXTRACT    │  items   │ 2. SCORE       │scored│ 3. PLAN        │    │ 4. DRAFT       │
-     │ raw text →    │ ───────► │ +revenue_prox  │─────►│ today:         │    │ for each       │
-     │ JSON items[]  │          │ +urgency       │      │ do_now/defer/  │    │ email_owed →   │
-     │ {item,type,   │          │ +reason        │      │ blocked (+why) │    │ real draft     │
-     │  due_date?,   │          │ priority =     │      │ (reorders/     │    │ using .context │
-     │  context}     │          │  rev*2+urgency │      │  groups items) │    │                │
+     │ 1. EXTRACT    │  items   │ 2. SCORE       │scored│ 3. DECIDE      │    │ 4. PREPARE     │
+     │ raw text →    │ ───────► │ +money motion  │─────►│ top 3 Money    │───►│ selected reply │
+     │ JSON items[]  │          │ +rev proximity │      │ Moves / Park / │    │ + unblock      │
+     │ {item,type,   │          │ +urgency       │      │ Blocked        │    │ messages only  │
+     │  due_date?,   │          │ +evidence      │      │ +next action   │    │ using context  │
+     │  value?,ctx}  │          │ rev*3+urgency  │      │ +done_when     │    │ +plan decision │
      │ MECHANICAL    │          │ JUDGMENT       │      │ JUDGMENT       │    │ GENERATION     │
      └───────────────┘          └────────────────┘      └────────────────┘    └────────────────┘
              │                           │                        │                    │
@@ -45,8 +49,8 @@ Solo founders are one-person companies: they *are* sales, ops, support, and deli
                                          ▼  { items, scored, plan, drafts }
                          ┌─────────────────────────────────────────────┐
                          │  React UI renders 4 result sections          │
-                         │  Prioritized Plan · Today · Draft Replies ·  │
-                         │  Deferred   (all render when POST completes) │
+                         │  3 Money Moves · Blocked → Unblock ·         │
+                         │  Parked Safely · All Commitments             │
                          └─────────────────────────────────────────────┘
 ```
 
@@ -56,25 +60,38 @@ Solo founders are one-person companies: they *are* sales, ops, support, and deli
 // after EXTRACT
 { "id": "i1", "item": "Reply to Acme re: renewal quote",
   "type": "email_owed",              // task | email_owed | deadline
-  "due_date": "2026-07-15",          // ISO or null
-  "context": "Acme asked for updated pricing on the annual plan; they hinted at signing this week." }
+  "due_date": "2026-07-12",          // ISO or null
+  "stated_value": "S$12,000/year",   // exact value from input or null; never estimated
+  "source_text": "Acme (Sarah) emailed twice about their renewal. She wants the revised annual quote today. Price is S$12,000/year with 10% off if they sign by Friday.",
+  "context": "Sarah at Acme wants the revised renewal quote today. The price is S$12,000/year with a 10% signing incentive through Friday." }
 
 // SCORE adds:
-{ "revenue_proximity": 5, "urgency": 4,
-  "reason": "Warm client ready to sign the annual contract — direct revenue, time-sensitive.",
-  "priority": 14 }                   // = revenue_proximity*2 + urgency, computed SERVER-SIDE not by the model
+{ "revenue_motion": "close",         // collect | close | deliver | retain | grow | operate
+  "revenue_proximity": 5, "urgency": 5,
+  "evidence": "She wants the revised annual quote today",
+  "cost_of_delay": "Waiting leaves Sarah less time to use the Friday signing incentive.",
+  "missing_fact": null,
+  "priority": 20 }                    // = revenue_proximity*3 + urgency, computed SERVER-SIDE
 
-// PLAN returns:
-{ "do_now": ["i1","i4"], "defer": [{"id":"i3","why":"No client is blocked on it this week."}],
-  "blocked": [{"id":"i7","why":"Waiting on designer's assets before you can ship."}] }
+// DECIDE returns an exact partition of every id:
+{ "money_moves": [
+    { "id":"i1", "why_today":"Warm S$12k renewal with a decision expected this week.",
+      "next_action":"Send Sarah the revised quote before 11am.",
+      "done_when":"Quote sent and Friday follow-up scheduled." }
+  ],
+  "park": [{"id":"i2","why_safe":"No client or cash outcome depends on this today."}],
+  "blocked": [{"id":"i5","blocker":"Waiting for Dave's final logo files.",
+                "unblock_action":"Ask Dave to deliver the files by 3pm today.",
+                "message_needed":true}] }
 
-// DRAFT returns, per email_owed id:
-{ "id": "i1", "subject": "Re: Annual plan pricing", "body": "Hi Sarah, ..." }
+// PREPARE returns only selected Money Move replies and useful unblock messages:
+{ "id": "i1", "purpose": "money_move",
+  "subject": "Re: Annual plan pricing", "body": "Hi Sarah, ..." }
 ```
 
-Each stage has a matching Pydantic response model passed to `client.responses.parse(...)`. OpenAI Structured Outputs constrains the response to that schema; the server then checks cross-stage invariants such as ID conservation and complete, non-overlapping PLAN buckets.
+Each stage has a matching Pydantic response model passed to `client.responses.parse(...)`. OpenAI Structured Outputs constrains the response to that schema; the server then checks cross-stage invariants: unique and conserved IDs, evidence copied from the original input, stated values never invented, and complete non-overlapping DECIDE buckets.
 
-> **Priority is computed in Python from the model's two scores**, not asked from the model — deterministic, auditable, and impossible for the model to get arithmetic-wrong on stage. The `reason` string is the model's; the number is ours.
+> **Priority is computed in Python as `revenue_proximity*3 + urgency`**, not asked from the model. The 3× weight makes the product's revenue-first promise mechanically true. Revenue motion, evidence, cost of delay, and missing information make the judgment inspectable; arithmetic remains deterministic.
 
 ---
 
@@ -83,10 +100,10 @@ Each stage has a matching Pydantic response model passed to `client.responses.pa
 All four share a preamble injected at the top:
 
 ```
-You are the reasoning core of "AI Chief of Staff", an operating layer for a solo founder
-(a one-person company). Today's date is {TODAY} (ISO, Asia/Singapore). Your response is
-constrained by the supplied JSON schema. Populate every field exactly as instructed; do not
-add prose, markdown, or commentary outside the structured response.
+You are the reasoning core of "Revenue Chief", an explainable revenue-triage agent for a solo
+founder (a one-person company). Today's date is {TODAY} (ISO, Asia/Singapore). Your response
+is constrained by the supplied JSON schema. Populate every field exactly as instructed; do
+not add prose, markdown, or commentary outside the structured response.
 ```
 
 ### Stage 1 — EXTRACT (mechanical, no judgment)
@@ -105,6 +122,10 @@ For each distinct item you find, emit:
       If an item is both a reply-owed and dated, prefer "email_owed".
   - due_date: an ISO date "YYYY-MM-DD" if the text implies one (resolve relative dates like
       "Friday", "end of week", "tomorrow" against TODAY). Otherwise null.
+  - stated_value: copy an explicitly stated monetary value and its unit/cadence (for example,
+      "S$4,800", "US$12k ARR", or "€2,000/month"). Otherwise null. Never estimate a value.
+  - source_text: the shortest exact excerpt from the input that proves this commitment exists.
+      Copy it verbatim; do not paraphrase it.
   - context: 1–2 sentences of the surrounding detail from the brain-dump that a later stage
       would need to act (who, what they asked, any stakes). Quote specifics; never generalize
       to "a client asked something".
@@ -112,19 +133,29 @@ For each distinct item you find, emit:
 Split compound lines into separate items. Do not merge unrelated items. Do not drop items
 because they seem trivial — extraction is exhaustive and neutral.
 
-Return JSON: { "items": [ {id, item, type, due_date, context}, ... ] }
+Return JSON: { "items": [ {id, item, type, due_date, stated_value, source_text, context}, ... ] }
 ```
 
-### Stage 2 — SCORE (judgment: revenue + urgency, with a visible reason)
+### Stage 2 — SCORE (judgment: money motion + revenue + urgency, grounded in evidence)
 
 ```
-ROLE: Prioritizer. For EACH item, assess two independent 1–5 scores and justify them.
+ROLE: Revenue Prioritizer. For EACH item, classify the money motion, assess two independent
+1–5 scores, and expose the evidence and cost of waiting.
+
+  revenue_motion: exactly one of:
+      "collect" — money already earned or owed (invoice, payment, receivable).
+      "close"   — win, renew, or expand signed revenue now.
+      "deliver" — complete paid work, unlock an invoice, or create promised customer value.
+      "retain"  — prevent churn or protect an existing paying relationship.
+      "grow"    — build future pipeline, audience, or relationships without near-term cash.
+      "operate" — admin, compliance, internal, personal, or speculative work with no direct
+                  revenue motion.
 
   revenue_proximity (1–5): how directly does completing this item move money toward the
     founder? Anchor the scale:
-      5 = closes/expands paying revenue now (signing a contract, sending an invoice, a
-          warm client ready to buy, unblocking a paid deliverable).
-      4 = strongly revenue-adjacent (proposal to a hot lead, renewal conversation).
+      5 = collects money already earned, closes/expands revenue now, or unblocks a paid
+          delivery with immediate commercial consequence.
+      4 = strongly revenue-adjacent (hot proposal, renewal conversation, at-risk account).
       3 = pipeline / relationship that could convert later.
       2 = keeps the business running but no direct revenue (admin, ops hygiene).
       1 = personal, speculative, or purely internal with no revenue line of sight.
@@ -136,59 +167,83 @@ ROLE: Prioritizer. For EACH item, assess two independent 1–5 scores and justif
       2 = due later / soft deadline.
       1 = no deadline pressure.
 
-  reason: ONE sentence, plain language, explaining the scores TOGETHER so the founder trusts
-    the ranking (e.g. "Warm client ready to sign — direct revenue and they expect a reply
-    today."). This is shown in the UI; make it legible, specific, and honest.
+  evidence: a short exact phrase copied from source_text that supports the commercial or time
+    judgment. It MUST be a verbatim substring of the original brain-dump.
 
-Do NOT compute a total or rank — only score and justify. Preserve id, item, type, due_date,
-context unchanged.
+  cost_of_delay: ONE specific sentence describing the likely consequence of not acting today.
+    Use only consequences supported by the item. If none is supported, say "No material cost
+    of waiting is stated."
 
-Return JSON: { "scored": [ {id, item, type, due_date, context, revenue_proximity, urgency,
-  reason}, ... ] }
+  missing_fact: the single missing fact that would most change this item's rank (for example,
+    "Exact invoice amount is unknown"), or null when the input is sufficient. Never invent the
+    missing answer.
+
+Do NOT compute a total or rank. Preserve id, item, type, due_date, stated_value, source_text,
+and context unchanged.
+
+Return JSON: { "scored": [ {id, item, type, due_date, stated_value, source_text, context,
+  revenue_motion, revenue_proximity, urgency, evidence, cost_of_delay, missing_fact}, ... ] }
 ```
 
-> Server then computes `priority = revenue_proximity*2 + urgency` for each and sorts descending.
+> Server then computes `priority = revenue_proximity*3 + urgency` for each and sorts descending.
 
-### Stage 3 — PLAN (today's do-now / defer / blocked)
+### Stage 3 — DECIDE (today's three Money Moves / Park / Blocked)
 
 ```
-ROLE: Chief of Staff. You are given the scored, priority-ranked items. Produce a realistic
-plan for TODAY for a founder who has limited focused hours.
+ROLE: Revenue Chief. You are given the scored, priority-ranked items. Make a decisive,
+realistic plan for TODAY for a founder with limited focused hours.
 
-  do_now: ids the founder should tackle today, highest-leverage first. Cap at ~4–5 — a plan
-    that says "do everything" is useless. Favor high revenue_proximity and high urgency.
-  defer: items to consciously NOT do today. For each, a one-line "why" that reassures the
-    founder it's safe to wait (e.g. "Soft deadline next week; no client waiting.").
-  blocked: items the founder CANNOT progress right now because they depend on someone/
-    something else. For each, a one-line "why" naming the blocker.
+  money_moves: at most THREE items the founder can materially advance today, highest-leverage
+    first. Prefer collect/close/deliver/retain motions with high priority. Each entry includes:
+      - why_today: one sentence tying the decision to money motion, urgency, and evidence.
+      - next_action: one concrete physical action, specific enough to begin immediately.
+      - done_when: an observable finish line for today.
+    Do not include an item that is genuinely blocked.
+
+  park: work the founder should consciously NOT do today. For each, why_safe must explain why
+    waiting does not threaten a near-term customer, cash outcome, or hard deadline.
+
+  blocked: work the founder cannot progress because it depends on someone or something else.
+    Name the blocker precisely and give one concrete unblock_action. If a person can unblock
+    it, state the message/request and a reasonable requested response time without inventing
+    contact details. Set message_needed true only when executing the unblock action requires a
+    message to another person; otherwise false.
 
 Every id from the input must appear in exactly one of the three buckets. Use only the given
 ids; do not invent items. Judge blockers from the context field (e.g. "waiting on", "once X
 sends", "pending approval").
 
-Return JSON: { "do_now": [id,...],
-               "defer":   [ {id, why}, ... ],
-               "blocked": [ {id, why}, ... ] }
+Return JSON: { "money_moves": [ {id, why_today, next_action, done_when}, ... ],
+               "park":        [ {id, why_safe}, ... ],
+               "blocked":     [ {id, blocker, unblock_action, message_needed}, ... ] }
 ```
 
-### Stage 4 — DRAFT (real, context-specific replies)
+### Stage 4 — PREPARE (only the messages needed to execute today's decision)
 
 ```
-ROLE: Ghostwriter for the founder. For EACH item of type "email_owed", write a ready-to-send
-reply the founder can review and send with minimal edits.
+ROLE: Execution Ghostwriter. You receive only the communication targets selected after DECIDE:
+  1. a Money Move whose type is "email_owed"; or
+  2. a Blocked item whose unblock_action requires a message to a person.
+
+For EACH target, write the ready-to-send message the founder needs to execute the decision.
+Set purpose to "money_move" or "unblock" exactly as supplied.
 
 Rules:
-  - Use the item's context field: reference the specific ask, names, numbers, and stakes in
-    it. A generic "Thanks for reaching out, I'll get back to you" is a FAILURE.
+  - Use context, stated_value, and the DECIDE fields. Reference the specific ask, names,
+    numbers, and stakes. A generic "Thanks for reaching out" is a FAILURE.
   - Voice: warm, concise, professional, founder-to-client. No corporate filler, no emojis.
-  - Move the relationship forward: answer or acknowledge the ask AND propose a concrete next
-    step (a date, a number, a call). If a fact is genuinely unknown, use a clearly-bracketed
-    placeholder like [confirm exact figure] rather than inventing specifics.
-  - subject: a natural "Re: ..." line. body: 3–8 sentences, real salutation and sign-off.
+  - For a Money Move, answer or acknowledge the ask and propose the concrete next action.
+  - For an unblock message, name what is needed, why it matters, and the requested response time.
+  - Never invent an amount, promise, recipient address, or commercial term. Use dates stated in
+    the item; for an unblock message, copy the operational response time supplied by DECIDE.
+    If a required fact is unknown, use a clearly bracketed placeholder such as [confirm exact figure].
+  - subject: a natural subject line (use "Re: ..." for replies when appropriate). body: 3–8
+    sentences, real salutation and sign-off.
 
-Only draft for email_owed items; ignore the rest.
+Never draft for parked items or for unselected email_owed items. Return an empty list when no
+selected target needs a message.
 
-Return JSON: { "drafts": [ {id, subject, body}, ... ] }
+Return JSON: { "drafts": [ {id, purpose, subject, body}, ... ] }
 ```
 
 ---
@@ -200,10 +255,10 @@ Times assume 11:00 start / 18:00 submit. Each checkpoint is a *verifiable* state
 | Block | Time | Goal | Checkpoint (verify) |
 |---|---|---|---|
 | **0. Scaffold** | 11:00–11:30 | Repo shape from KB. `api/index.py`, `backend/app/main.py`, `frontend/` Vite+React, `vercel.json`, root `requirements.txt`, `.env`. | `GET /api/health` → `{"status":"ok"}` locally; Vite dev page loads. |
-| **1. Backend pipeline** | 11:30–13:00 | `POST /api/process` runs all 4 `gpt-5.6-sol` Responses API calls sequentially with Pydantic Structured Outputs, computes `priority`, and returns the assembled payload. Hard-code one sample brain-dump in a test script. | `curl` the endpoint → schema-valid JSON with `items`, `scored`, `plan`, `drafts` all populated. **This is the core; protect this block.** |
-| **2. Prompt tuning** | 13:00–13:45 | Run the sample through; improve weak reasons and generic drafts. Define one Pydantic response model per stage and add semantic checks for conserved IDs, score ranges, and complete PLAN buckets. | Drafts reference the sample's specifics; every id appears in exactly one PLAN bucket; malformed stage output fails cleanly. |
-| **3. Frontend render** | 13:45–15:15 | Textarea + "Run" button. Four sections: **Prioritized Plan** (ranked, each row shows priority score + reason), **Today** (do-now/defer/blocked), **Draft Replies** (copy-to-clipboard), **Deferred**. | Paste sample in browser (dev) → all four sections render from live API. |
-| **4. Loading state + polish** | 15:15–16:15 | Show one subtle spinner and the truthful label "Analyzing your commitments…" for the duration of the request, then render all results immediately. Clean typography, empty/error states. | The wait is clear and honest; the completed result is easy to scan. |
+| **1. Backend pipeline** | 11:30–13:00 | `POST /api/process` runs all 4 `gpt-5.6-sol` Responses API calls sequentially with Pydantic Structured Outputs, computes `priority = revenue_proximity*3 + urgency`, selects communication targets from DECIDE, and returns the assembled payload. Hard-code the sample brain-dump in a test script. | `curl` the endpoint → schema-valid JSON with `items`, `scored`, `plan`, `drafts`; verbatim evidence; at most 3 Money Moves; exact bucket partition. **This is the core; protect this block.** |
+| **2. Prompt tuning** | 13:00–13:45 | Run the sample through; tune money-motion labels, evidence, cost-of-delay language, concrete next actions, and drafts. Add semantic checks for conserved IDs, score ranges, evidence grounding, stated-value fidelity, and exact DECIDE buckets. | Top moves are Acme/Nordic/Meridian; every evidence string exists in the input; Dave has an unblock action; low-value parked emails receive no draft; malformed output fails cleanly. |
+| **3. Frontend render** | 13:45–15:15 | Textarea + "Find My Money Moves" button. Four sections: **Today's 3 Money Moves**, **Blocked → Unblock**, **Parked Safely**, **All Commitments**. Attach each selected draft to its Money Move or blocked card. | Paste sample in browser (dev) → cards show money-motion badge, stated value when present, priority, evidence, cost of delay, next action, finish line, and selected draft. |
+| **4. Loading state + polish** | 15:15–16:15 | Show one subtle spinner and the truthful label "Finding today's Money Moves…" for the duration of the request, then render all results immediately. Clean typography, copy-to-clipboard, empty/error states. | The wait is clear and honest; the three decisions and their economic logic are scannable in seconds. |
 | **5. Deploy** | 16:15–17:00 | `npx vercel --prod` from WSL. Fix the KB gotchas proactively (static-build `/frontend/` prefix routes, `includeFiles: backend/**`, `.env.production` → `VITE_API_BASE=/api`). Set `OPENAI_API_KEY` in Vercel env. | Curl the **alias** (not raw URL): `/` 200 html, `/assets/*.js` 200, `/api/health` ok, `/api/process` 200 with body. |
 | **6. Rehearse + submit** | 17:00–18:00 | Run the demo script twice on the live URL. Pre-stage the sample brain-dump. Write submission blurb. Screenshot as fallback. | Full demo runs end-to-end on the deployed URL in <2 min. **Submit by 17:45**, 15-min buffer. |
 
@@ -212,10 +267,10 @@ Times assume 11:00 start / 18:00 submit. Each checkpoint is a *verifiable* state
 ### Cut list — drop in this order if behind
 
 1. **Loading-state polish** (Block 4) → replace the spinner with plain "Working…" text. Results still render all at once.
-2. **Copy-to-clipboard + polish** → drafts shown as plain selectable `<pre>` text.
-3. **Stage 4 DRAFT** → if truly desperate, ship 3 stages (Extract/Score/Plan). Losing drafts hurts the "it *acts*" story, so cut this only after 1–2.
-4. **Deferred as its own section** → fold "defer" + "blocked" into the Today view.
-5. **Never cut:** Extract → Score (with visible `reason`) → ranked Prioritized Plan. That trio *is* the differentiator (legible revenue-weighted prioritization). If only this ships, the pitch still lands.
+2. **Copy-to-clipboard + visual polish** → messages remain plain selectable text inside their cards.
+3. **Stage 4 PREPARE** → if truly desperate, ship 3 stages (Extract/Score/Decide). Losing action-ready messages hurts, so cut this only after 1–2.
+4. **All Commitments as its own section** → keep only Money Moves, Blocked, and Parked; no data is lost from the response.
+5. **Never cut:** grounded evidence, money-motion labels, deterministic 3× revenue score, and the exact Money Moves/Park/Blocked partition. Those elements are the differentiator. If only three stages ship, the pitch still lands.
 
 **Fallback if the live deploy breaks during demo:** run `npx vercel dev` locally / `uvicorn` + `vite` on the laptop and demo on `localhost`; have screenshots + a 30s screen-recording of a good run as the ultimate backstop.
 
@@ -227,24 +282,24 @@ Times assume 11:00 start / 18:00 submit. Each checkpoint is a *verifiable* state
 
 ```
 ok brain dump before I lose it:
-- Acme (Sarah) emailed twice about the annual plan pricing, they want to sign this week, need to send updated quote
+- Acme (Sarah) emailed twice about their renewal. She wants the revised annual quote today. Price is S$12,000/year with 10% off if they sign by Friday.
 - still owe the podcast guy a reply about coming on the show, low prio but he's been waiting 2 wks
-- invoice #204 to Nordic Labs is overdue, was due last Friday, need to chase
-- finish the onboarding deck for the new client demo on Thursday
+- Nordic Labs invoice #204 for S$4,800 was due last Friday. James in AP is the contact; need to ask whether anything is blocking payment.
+- finish the generic onboarding deck template by Thursday if there is time; no client is waiting on it
 - Dave the designer still hasn't sent the new logo files, blocked on the landing page redesign until then
 - taxes / GST filing due end of month sometime
 - reply to that recruiter, not urgent
 - coffee chat w/ potential co-founder, want to schedule for next week
-- the Meridian proposal — they asked for a revised scope, hot lead, they replied yesterday
+- Meridian has an S$18,000 budget. They asked yesterday for a revised scope removing analytics but keeping onboarding; they want it tomorrow and decide on Wednesday.
 ```
 
 **Script (~2:00):**
 
-- **[0:00–0:20] Problem.** "I'm a solo founder. This" — gesture at the textarea — "is my brain at 9am. Nine things, no ops team, and the stuff that actually makes money is buried in here. Chatbots wait for me to ask the right question. This doesn't." Click **Run**.
-- **[0:20–0:45] Explain the pipeline while it runs.** While the single loading indicator is visible: "Behind this request, it extracts every commitment, scores each one on revenue-proximity and urgency, plans my day, and drafts the replies I owe. Four specialized reasoning steps, assembled into one decision-ready result."
-- **[0:45–1:15] The payoff — Prioritized Plan.** "Top of my list isn't the loudest thing, it's the most valuable: the Acme renewal and the Meridian hot lead — and look, every ranking shows *why*." Point at a `reason` line. "The overdue Nordic invoice is right there too — money already earned, just uncollected. It reasoned about revenue, and it shows its work."
-- **[1:15–1:40] Today + Blocked.** "It tells me exactly what to do *now*, what's safe to defer — GST filing, the recruiter — and what I'm *blocked* on: the landing page, because Dave hasn't sent the logo. It knew that from the context."
-- **[1:40–2:00] Draft Replies — the 'it acts' beat.** Open the Acme draft. "And it already wrote the reply — not 'thanks for reaching out', but the actual updated-pricing response to Sarah, referencing that they want to sign this week. I review, I send. One person, the output of an ops team. That's the One Person Company." Close.
+- **[0:00–0:20] Problem.** "I'm a solo founder. This" — gesture at the textarea — "is my business at 9am: nine commitments across sales, delivery, cash collection, and admin. A task list stores the chaos. I need an economic decision." Click **Find My Money Moves**.
+- **[0:20–0:45] Explain the pipeline while it runs.** While the single loading indicator is visible: "It extracts every commitment, identifies the money motion, grounds the judgment in my own words, ranks revenue three times more heavily than urgency, and prepares only the messages needed to act. Four specialist stages, one auditable decision."
+- **[0:45–1:15] The payoff — three Money Moves.** "In seconds it found three different revenue motions: collect S$4,800 already earned, close a S$12,000 renewal, and advance an S$18,000 proposal." Point at the badges, source evidence, and cost-of-delay lines. "I can see exactly why each one is here — and what waiting could cost."
+- **[1:15–1:40] Parked + Blocked.** "It also makes the decision most planners avoid: what *not* to do. GST and the recruiter are parked safely. The landing page is blocked on Dave, and Revenue Chief gives me the exact unblock request instead of pretending I can work on it."
+- **[1:40–2:00] Prepared action.** Open the Acme Money Move and its attached draft. "The decision flows straight into action: Sarah's name, S$12,000 annual price, 10% signing incentive, and Friday deadline are already in the reply. It did not draft the podcast or recruiter emails because they are not today's moves. I review, copy, and send."
 
 **Delivery notes:** narrate *while* it runs (don't wait in silence); if a call is slow, keep talking over the spinner; land on the draft — it's the strongest "wow".
 
@@ -252,7 +307,19 @@ ok brain dump before I lose it:
 
 ## 6. Definition of Done
 
-**Primary (must hit):** On the **deployed Vercel alias URL**, pasting the sample brain-dump and clicking Run renders **all four sections live** — Prioritized Plan (ranked, each item showing its priority score and one-line reason), Today (do-now / defer / blocked with why), Draft Replies (≥1 context-specific draft), Deferred — driven by real `gpt-5.6-sol` Responses API calls with Pydantic Structured Outputs, end-to-end in under ~30s, reproducibly.
+**Primary (must hit):** On the **deployed Vercel alias URL**, pasting the sample brain-dump and clicking **Find My Money Moves** renders **all four sections live** — Today's 3 Money Moves, Blocked → Unblock, Parked Safely, and All Commitments — driven by real `gpt-5.6-sol` Responses API calls with Pydantic Structured Outputs, end-to-end in under ~30s, reproducibly. Money Move cards show their motion, stated value when present, deterministic priority, verbatim evidence, cost of delay, next action, finish line, and any selected message.
+
+**Decision-quality acceptance checks (all must pass on the sample):**
+
+- Acme, Nordic Labs, and Meridian are the three Money Moves; no blocked item appears there.
+- Acme is `close`, Nordic is `collect`, and Meridian is `close`.
+- Every `evidence` string is a verbatim substring of the submitted brain-dump.
+- `stated_value` preserves `S$12,000/year`, `S$4,800`, and `S$18,000`; no unstated value is invented.
+- Dave appears in Blocked with a concrete request for the logo files and a response time.
+- GST, the recruiter, podcast reply, coffee chat, and generic deck are Parked with a credible `why_safe`.
+- The Acme draft contains Sarah, S$12,000/year, 10%, and Friday. Nordic and Meridian drafts use their supplied specifics.
+- No draft is generated for the podcast or recruiter items.
+- Every extracted id appears exactly once across `money_moves`, `park`, and `blocked`.
 
 **Verification (run before calling it done):**
 ```bash
@@ -262,9 +329,9 @@ curl -s https://<app>.vercel.app/api/health                                     
 curl -s -X POST https://<app>.vercel.app/api/process -H 'Content-Type: application/json' \
   -d '{"braindump":"<sample>","today":"2026-07-12"}' | jq 'keys'                                       # ["drafts","items","plan","scored"]
 ```
-Then open the alias in a fresh browser, paste the sample, and watch all four sections populate.
+Then open the alias in a fresh browser, paste the sample, and verify both the four sections and the decision-quality checks above.
 
-**Stretch (only if ahead of schedule):** copy-to-clipboard on drafts; a second "regenerate this draft" button per email; per-stage latency metrics in server logs (not simulated UI progress).
+**Stretch (only if ahead of schedule):** an "Open in email" action for prepared messages; a second "regenerate this draft" button per message; per-stage latency metrics in server logs (not simulated UI progress).
 
 ---
 
@@ -275,10 +342,10 @@ parallel because the `POST /api/process` JSON contract in §2 is the *only* inte
 them. Two self-contained briefs:
 
 - **[PLAN_BACKEND.md](PLAN_BACKEND.md)** — Person A: FastAPI, the 4-stage OpenAI pipeline,
-  Pydantic Structured Outputs, priority computation, semantic validation, and deploy.
+  Pydantic Structured Outputs, priority computation, semantic validation, and deploy support.
 - **[PLAN_FRONTEND.md](PLAN_FRONTEND.md)** — Person B: Vite + React, the textarea, the four
-  result sections, the loading state, and demo polish. Builds against a **frozen mock** of the
-  contract, so it never waits on the backend.
+  Revenue Chief sections, Money Move action cards, the loading state, and demo polish. Builds
+  against a **frozen mock** of the contract, so it never waits on the backend.
 
 **Roles:** Person B (Frontend) = **you** — and because you hold the `OPENAI_API_KEY`, the Vercel
 account, and the deploy KB, you also own the repo scaffold, the frozen contract, and the deploy.
@@ -314,9 +381,9 @@ locally with uvicorn. At integration they hand you (or push) the pipeline code; 
 | Time | Person A (Backend — collaborator) | Person B (Frontend — you) |
 |---|---|---|
 | 11:00–11:20 | (set up Python env; clone repo once shared) | **Scaffold repo + `vercel.json` + `api/index.py` + `main.py` health stub + freeze `mock/process.json`; share repo + an OpenAI key** |
-| 11:20–13:15 | Pipeline: 4 `responses.parse` calls, Pydantic models, priority, assemble payload | Layout + 4 sections rendering from `mock/process.json` |
-| 13:15–14:00 | Prompt tuning + semantic checks (IDs conserved, buckets partition, score ranges) | Prioritized-Plan rows (score + reason), Today buckets, Drafts, Deferred |
-| 14:00–15:15 | Endpoint hardening; local `curl /api/process` green on the sample (uvicorn) | Loading state ("Analyzing your commitments…"), copy-to-clipboard, styling |
+| 11:20–13:15 | Pipeline: 4 `responses.parse` calls, Pydantic models, 3× revenue priority, selected draft targets, assembled payload | Layout + 4 sections rendering from `mock/process.json` |
+| 13:15–14:00 | Prompt tuning + semantic checks (IDs conserved, exact partition, score ranges, evidence/value grounded) | Money Move cards, Blocked → Unblock, Parked Safely, All Commitments, attached drafts |
+| 14:00–15:15 | Endpoint hardening; local `curl /api/process` green on the sample (uvicorn) | Loading state ("Finding today's Money Moves…"), copy-to-clipboard, styling |
 | **15:15–15:45** | **Integration: push/hand pipeline code to you; reconcile contract together** | **Integration: pull backend code in, point frontend at real `/api`** |
 | 15:45–16:45 | Help verify on real data; on standby | **Deploy `npx vercel --prod`; set `OPENAI_API_KEY` in Vercel; verify alias** |
 | 16:45–18:00 | **Joint:** rehearse demo twice on live URL, write blurb, submit by 17:45 | **Joint** |
@@ -331,9 +398,10 @@ it's the whole point of the split.
 ```
 api/index.py                 # serverless entry: mounts backend FastAPI app under /api
 backend/app/main.py          # FastAPI app: /health, /process; the 4-stage pipeline
-backend/app/pipeline.py      # extract/score/plan/draft functions + prompts + JSON parsing
+backend/app/pipeline.py      # extract/score/decide/prepare functions + prompts + validation
 frontend/                    # Vite + React
 frontend/.env.production     # VITE_API_BASE=/api
+mock/process.json            # frozen frontend/backend seam matching the §2 contract
 requirements.txt             # ROOT — runtime deps only (no uvicorn)
 vercel.json                  # version 2, legacy builds/routes
 .vercelignore
@@ -396,30 +464,48 @@ class Item(BaseModel):
     item: str
     type: Literal["task", "email_owed", "deadline"]
     due_date: str | None
+    stated_value: str | None
+    source_text: str
     context: str
 
 class ExtractOutput(BaseModel):
     items: list[Item]
 
 class ScoredItem(Item):
+    revenue_motion: Literal["collect", "close", "deliver", "retain", "grow", "operate"]
     revenue_proximity: int
     urgency: int
-    reason: str
+    evidence: str
+    cost_of_delay: str
+    missing_fact: str | None
 
 class ScoreOutput(BaseModel):
     scored: list[ScoredItem]
 
-class BucketItem(BaseModel):
+class MoneyMove(BaseModel):
     id: str
-    why: str
+    why_today: str
+    next_action: str
+    done_when: str
 
-class PlanOutput(BaseModel):
-    do_now: list[str]
-    defer: list[BucketItem]
-    blocked: list[BucketItem]
+class ParkItem(BaseModel):
+    id: str
+    why_safe: str
+
+class BlockedItem(BaseModel):
+    id: str
+    blocker: str
+    unblock_action: str
+    message_needed: bool
+
+class DecideOutput(BaseModel):
+    money_moves: list[MoneyMove]
+    park: list[ParkItem]
+    blocked: list[BlockedItem]
 
 class Draft(BaseModel):
     id: str
+    purpose: Literal["money_move", "unblock"]
     subject: str
     body: str
 
@@ -454,20 +540,33 @@ def run_pipeline(braindump: str, today: str) -> dict:
     )
     scored = [item.model_dump(mode="json") for item in scored_output.scored]
     for s in scored:                                   # priority computed server-side
-        s["priority"] = s["revenue_proximity"] * 2 + s["urgency"]
+        s["priority"] = s["revenue_proximity"] * 3 + s["urgency"]
     scored.sort(key=lambda s: s["priority"], reverse=True)
 
     plan = _call(
-        preamble + PLAN,
+        preamble + DECIDE,
         json.dumps({"scored": scored}),
-        PlanOutput,
+        DecideOutput,
     ).model_dump(mode="json")
 
-    emails = [s for s in scored if s["type"] == "email_owed"]
-    if emails:
+    by_id = {item["id"]: item for item in scored}
+    targets = []
+    for move in plan["money_moves"]:
+        item = by_id[move["id"]]
+        if item["type"] == "email_owed":
+            targets.append({"purpose": "money_move", "item": item, "decision": move})
+    for blocked in plan["blocked"]:
+        if blocked["message_needed"]:
+            targets.append({
+                "purpose": "unblock",
+                "item": by_id[blocked["id"]],
+                "decision": blocked,
+            })
+
+    if targets:
         draft_output = _call(
-            preamble + DRAFT,
-            json.dumps({"items": emails}),
+            preamble + PREPARE,
+            json.dumps({"targets": targets}),
             DraftOutput,
         )
         drafts = [draft.model_dump(mode="json") for draft in draft_output.drafts]
@@ -478,4 +577,4 @@ def run_pipeline(braindump: str, today: str) -> dict:
 ```
 `backend/app/main.py` exposes `GET /health` → `{"status":"ok"}` and `POST /process` → `run_pipeline(...)`, wrapped in try/except returning a clean 500 with the failing stage so demo-day errors are debuggable.
 
-> **Structured Outputs requirement:** `client.responses.parse(..., text_format=Schema)` removes manual `json.loads` and constrains each response to its Pydantic schema. It does not replace semantic validation: after each stage, verify score ranges, conserved/unique IDs, and that the PLAN buckets form an exact partition. Confirm `gpt-5.6-sol` account access and all four schemas with the sample in Block 0.
+> **Structured Outputs requirement:** `client.responses.parse(..., text_format=Schema)` removes manual `json.loads` and constrains each response to its Pydantic schema. It does not replace semantic validation: verify 1–5 score ranges; unique and conserved IDs; `source_text`, `evidence`, and non-null `stated_value` against the original input; no more than three Money Moves; an exact Money Moves/Park/Blocked partition; and drafts whose ids/purposes exactly match the server-selected targets. Confirm `gpt-5.6-sol` account access and all four schemas with the sample in Block 0.
