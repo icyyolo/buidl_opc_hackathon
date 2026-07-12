@@ -7,7 +7,8 @@
       name="description"
       content="Revenue Radar turns a founder's weekly brain-dump into explainable, revenue-first decisions."
     />
-    <meta name="theme-color" content="#183f2c" />
+    <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1511" media="(prefers-color-scheme: dark)" />
     <meta property="og:title" content="Revenue Radar — Find today's Money Moves" />
     <meta
       property="og:description"
@@ -15,6 +16,22 @@
     />
     <meta property="og:type" content="website" />
     <title>Revenue Radar — Find today's Money Moves</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('revenue-radar-theme')
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+          document.documentElement.dataset.theme = theme
+        } catch (error) {
+          document.documentElement.dataset.theme = 'light'
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { REVENUE_MOTIONS, type RevenueMotion, type ScoredItem } from '../types'
 
 interface CashLeakRadarProps {
@@ -18,8 +19,18 @@ function commitmentCount(count: number): string {
 }
 
 export function CashLeakRadar({ items }: CashLeakRadarProps) {
+  const maxMotionCount = Math.max(
+    0,
+    ...REVENUE_MOTIONS.map(
+      (motion) => items.filter((item) => item.revenue_motion === motion).length,
+    ),
+  )
+
   return (
-    <section className="cash-leak-radar" aria-labelledby="cash-leak-radar-heading">
+    <section
+      className="cash-leak-radar plan-reveal plan-reveal-2"
+      aria-labelledby="cash-leak-radar-heading"
+    >
       <div className="radar-heading">
         <div>
           <p className="eyebrow">See every revenue motion</p>
@@ -35,6 +46,8 @@ export function CashLeakRadar({ items }: CashLeakRadarProps) {
         {REVENUE_MOTIONS.map((motion) => {
           const motionItems = items.filter((item) => item.revenue_motion === motion)
           const { label, meaning } = MOTION_DETAILS[motion]
+          const proportion =
+            maxMotionCount === 0 ? 0 : (motionItems.length / maxMotionCount) * 100
 
           return (
             <div
@@ -48,6 +61,21 @@ export function CashLeakRadar({ items }: CashLeakRadarProps) {
                 <span>{commitmentCount(motionItems.length)}</span>
               </div>
               <p className="radar-motion-meaning">{meaning}</p>
+              <div
+                className={`motion-count-bar motion-count-${motion}`}
+                role="img"
+                aria-label={`${motionItems.length} of ${maxMotionCount} commitments`}
+              >
+                <span
+                  className="motion-count-fill"
+                  aria-hidden="true"
+                  style={
+                    {
+                      '--motion-count-proportion': `${proportion}%`,
+                    } as CSSProperties
+                  }
+                />
+              </div>
 
               {motionItems.some((item) => item.stated_value !== null) ? (
                 <div className="radar-stated-values" aria-label={`${label} stated values`}>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type Ref } from 'react'
 import type {
   BlockedItem,
   Draft,
@@ -15,6 +15,8 @@ import './revenue-insights.css'
 
 interface ResultsProps {
   data: ProcessResponse
+  resultsRef?: Ref<HTMLDivElement>
+  resultsHeadingRef?: Ref<HTMLHeadingElement>
 }
 
 function titleCaseToken(value: string): string {
@@ -47,15 +49,30 @@ function SectionHeading({
   )
 }
 
-function CompleteAccounting({ data }: { data: ProcessResponse }) {
+function CompleteAccounting({
+  data,
+  headingRef,
+}: {
+  data: ProcessResponse
+  headingRef?: Ref<HTMLHeadingElement>
+}) {
   const moneyMoveCount = data.plan.money_moves.length
   const blockedCount = data.plan.blocked.length
   const parkedCount = data.plan.park.length
   const accountedCount = moneyMoveCount + blockedCount + parkedCount
 
   return (
-    <div className="complete-accounting" role="region" aria-label="Complete accounting">
-      <p className="eyebrow">Complete plan accounting</p>
+    <div
+      className="complete-accounting plan-reveal plan-reveal-1"
+      role="region"
+      aria-label="Complete accounting"
+    >
+      <div className="accounting-label">
+        <p className="eyebrow">Complete plan accounting</p>
+        <h3 id="revenue-plan-heading" ref={headingRef} tabIndex={headingRef ? -1 : undefined}>
+          Revenue plan results
+        </h3>
+      </div>
       <p className="accounting-summary">
         <strong>
           {moneyMoveCount} Money {moneyMoveCount === 1 ? 'Move' : 'Moves'}
@@ -179,7 +196,7 @@ function ParkedCard({ item, parked }: { item: ScoredItem; parked: ParkItem }) {
   )
 }
 
-export function Results({ data }: ResultsProps) {
+export function Results({ data, resultsRef, resultsHeadingRef }: ResultsProps) {
   const { scoredById, draftByTarget } = useMemo(() => {
     return {
       scoredById: new Map(data.scored.map((item) => [item.id, item])),
@@ -190,13 +207,21 @@ export function Results({ data }: ResultsProps) {
   }, [data])
 
   return (
-    <div className="results" role="region" aria-label="Revenue plan results">
+    <div
+      className="results"
+      role="region"
+      aria-labelledby="revenue-plan-heading"
+      ref={resultsRef}
+    >
       <div className="results-overview">
-        <CompleteAccounting data={data} />
+        <CompleteAccounting data={data} headingRef={resultsHeadingRef} />
         <CashLeakRadar items={data.scored} />
       </div>
 
-      <section className="result-section money-section" aria-labelledby="money-moves-heading">
+      <section
+        className="result-section money-section plan-reveal plan-reveal-3"
+        aria-labelledby="money-moves-heading"
+      >
         <SectionHeading
           id="money-moves-heading"
           kicker="Decide"
@@ -224,7 +249,10 @@ export function Results({ data }: ResultsProps) {
         )}
       </section>
 
-      <section className="result-section" aria-labelledby="blocked-heading">
+      <section
+        className="result-section blocked-section plan-reveal plan-reveal-4"
+        aria-labelledby="blocked-heading"
+      >
         <SectionHeading
           id="blocked-heading"
           kicker="Unstick"
@@ -251,7 +279,10 @@ export function Results({ data }: ResultsProps) {
         )}
       </section>
 
-      <section className="result-section" aria-labelledby="parked-heading">
+      <section
+        className="result-section parked-section plan-reveal plan-reveal-5"
+        aria-labelledby="parked-heading"
+      >
         <SectionHeading
           id="parked-heading"
           kicker="Protect focus"
@@ -271,7 +302,10 @@ export function Results({ data }: ResultsProps) {
         )}
       </section>
 
-      <section className="result-section commitments-section" aria-labelledby="commitments-heading">
+      <section
+        className="result-section commitments-section plan-reveal plan-reveal-6"
+        aria-labelledby="commitments-heading"
+      >
         <SectionHeading
           id="commitments-heading"
           kicker="Audit the decision"
