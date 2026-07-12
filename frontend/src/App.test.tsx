@@ -155,10 +155,15 @@ describe('Revenue Radar intake', () => {
 
     const submit = screen.getByRole('button', { name: 'Find My Money Moves' })
     const textarea = screen.getByRole('textbox', { name: 'Founder brain-dump' })
+    const form = submit.closest('form')
     await user.click(submit)
 
+    const loadingPanel = screen.getByRole('region', { name: 'Revenue plan loading' })
     expect(screen.getAllByText("Finding today's Money Moves…")).toHaveLength(1)
-    expect(screen.getByRole('status')).toHaveTextContent("Finding today's Money Moves…")
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    expect(within(loadingPanel).getByRole('status')).toHaveTextContent("Finding today's Money Moves…")
+    expect(loadingPanel.querySelector('.radar-loader')).toHaveAttribute('aria-hidden', 'true')
+    expect(form).toHaveAttribute('aria-busy', 'true')
     expect(submit).toBeDisabled()
     expect(textarea).toBeDisabled()
     expect(screen.queryByLabelText('Revenue plan results')).not.toBeInTheDocument()
@@ -175,9 +180,11 @@ describe('Revenue Radar intake', () => {
 
     const results = await screen.findByLabelText('Revenue plan results')
     expect(screen.queryByText("Finding today's Money Moves…")).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Revenue plan loading' })).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent(
       'Revenue plan ready. Four result sections are now available.',
     )
+    expect(form).toHaveAttribute('aria-busy', 'false')
     expect(submit).toBeEnabled()
     expect(textarea).toBeEnabled()
     expect(within(results).getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual([

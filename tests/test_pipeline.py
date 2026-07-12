@@ -17,8 +17,8 @@ from app.pipeline import (
     MoneyMove,
     ParkItem,
     PipelineError,
+    ScoreJudgment,
     ScoreOutput,
-    ScoredItem,
 )
 
 
@@ -55,9 +55,9 @@ def _scored(
     evidence: str | None = None,
     cost_of_delay: str = "No material cost of waiting is stated.",
     missing_fact: str | None = None,
-) -> ScoredItem:
-    return ScoredItem(
-        **item.model_dump(mode="python"),
+) -> ScoreJudgment:
+    return ScoreJudgment(
+        id=item.id,
         revenue_motion=revenue_motion,
         revenue_proximity=revenue_proximity,
         urgency=urgency,
@@ -347,13 +347,15 @@ def test_score_must_return_exactly_one_row_per_extracted_item(
     _assert_stage(exc_info.value, "SCORE")
 
 
+@pytest.mark.parametrize("replacement_id", ["i1", "i999"], ids=["duplicate", "unknown"])
 def test_score_must_conserve_the_exact_id_set(
     monkeypatch: pytest.MonkeyPatch,
     sample_braindump: str,
+    replacement_id: str,
 ) -> None:
     extract, score, decision = _two_item_outputs(sample_braindump)
-    duplicate = score.scored[0].model_copy(update={"id": "i1"})
-    malformed = ScoreOutput(scored=[score.scored[0], duplicate])
+    replacement = score.scored[1].model_copy(update={"id": replacement_id})
+    malformed = ScoreOutput(scored=[score.scored[0], replacement])
     _install_outputs(
         monkeypatch,
         {ExtractOutput: extract, ScoreOutput: malformed, DecideOutput: decision},
@@ -365,35 +367,32 @@ def test_score_must_conserve_the_exact_id_set(
     _assert_stage(exc_info.value, "SCORE")
 
 
-@pytest.mark.parametrize(
-    ("field", "invalid_value"),
-    [
-        ("item", "A changed summary"),
-        ("type", "task"),
-        ("due_date", None),
-        ("stated_value", None),
-        ("source_text", "Nordic invoice S$4,800 is overdue; email James about payment."),
-        ("context", "Changed context"),
-    ],
-)
-def test_score_cannot_change_any_extracted_field(
+def test_server_joins_validated_extracted_fields_onto_compact_score_judgments(
     monkeypatch: pytest.MonkeyPatch,
     sample_braindump: str,
-    field: str,
-    invalid_value: Any,
 ) -> None:
     extract, score, decision = _two_item_outputs(sample_braindump)
-    changed = score.scored[0].model_copy(update={field: invalid_value})
-    malformed = ScoreOutput(scored=[changed, score.scored[1]])
     _install_outputs(
         monkeypatch,
-        {ExtractOutput: extract, ScoreOutput: malformed, DecideOutput: decision},
+        {
+            ExtractOutput: extract,
+            ScoreOutput: score,
+            DecideOutput: decision,
+            DraftOutput: DraftOutput(drafts=[_draft("i1", "money_move")]),
+        },
     )
 
-    with pytest.raises(PipelineError) as exc_info:
-        pipeline.run_pipeline(sample_braindump, TODAY)
+    result = pipeline.run_pipeline(sample_braindump, TODAY)
 
-    _assert_stage(exc_info.value, "SCORE")
+    extracted_by_id = {item.id: item.model_dump(mode="json") for item in extract.items}
+    for row in result["scored"]:
+        extracted = extracted_by_id[row["id"]]
+        for field in ("item", "type", "due_date", "stated_value", "source_text", "context"):
+            assert row[field] == extracted[field]
+    assert all(
+        "item" not in judgment.model_dump(mode="json")
+        for judgment in score.scored
+    )
 
 
 @pytest.mark.parametrize(
@@ -414,7 +413,7 @@ def test_score_ranges_are_enforced_even_for_schema_bypassed_output(
     extract, score, decision = _two_item_outputs(sample_braindump)
     values = score.scored[0].model_dump(mode="python")
     values[field] = invalid_value
-    invalid = ScoredItem.model_construct(**values)
+    invalid = ScoreJudgment.model_construct(**values)
     malformed = ScoreOutput.model_construct(scored=[invalid, score.scored[1]])
     _install_outputs(
         monkeypatch,
@@ -625,6 +624,7 @@ def test_call_wires_responses_parse_with_model_messages_and_schema(
     assert actual is expected
     assert seen == {
         "model": pipeline.MODEL,
+        "reasoning": {"effort": pipeline.REASONING_EFFORT},
         "input": [
             {"role": "system", "content": "system instructions"},
             {"role": "user", "content": "user payload"},
@@ -648,4 +648,3 @@ def test_call_rejects_a_response_without_parsed_structured_output(
 
     with pytest.raises(ValueError, match="no structured output"):
         pipeline._call("system", "user", ExtractOutput)
-

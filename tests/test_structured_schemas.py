@@ -22,3 +22,17 @@ def test_openai_structured_output_schemas_convert_to_strict_json(schema: type) -
     rendered = json.dumps(strict_schema)
     assert "minLength" not in rendered
     assert "maxLength" not in rendered
+
+
+def test_score_schema_only_generates_the_judgment_delta() -> None:
+    strict_schema = to_strict_json_schema(ScoreOutput)
+
+    assert set(strict_schema["$defs"]["ScoreJudgment"]["properties"]) == {
+        "id",
+        "revenue_motion",
+        "revenue_proximity",
+        "urgency",
+        "evidence",
+        "cost_of_delay",
+        "missing_fact",
+    }

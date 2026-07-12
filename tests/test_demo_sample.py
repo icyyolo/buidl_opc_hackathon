@@ -15,8 +15,8 @@ from app.pipeline import (
     Item,
     MoneyMove,
     ParkItem,
+    ScoreJudgment,
     ScoreOutput,
-    ScoredItem,
 )
 
 
@@ -133,8 +133,8 @@ def test_exact_demo_brain_dump_meets_decision_quality_contract(
         ("close", 5, 4, "they want it tomorrow"),
     ]
     scored = [
-        ScoredItem(
-            **item.model_dump(mode="python"),
+        ScoreJudgment(
+            id=item.id,
             revenue_motion=motion,
             revenue_proximity=proximity,
             urgency=urgency,
