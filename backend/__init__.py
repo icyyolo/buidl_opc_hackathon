@@ -1,1 +1,1 @@
-"""Revenue Chief backend package."""
+"""Revenue Radar backend package."""

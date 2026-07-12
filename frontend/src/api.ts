@@ -41,15 +41,15 @@ export async function requestMoneyMoves(braindump: string): Promise<ProcessRespo
       body: JSON.stringify({ braindump, today: DEMO_TODAY }),
     })
   } catch {
-    throw new ProcessRequestError("We couldn't reach Revenue Chief. Check the connection and try again.")
+    throw new ProcessRequestError("We couldn't reach Revenue Radar. Check the connection and try again.")
   }
 
   if (!response.ok) {
     const detail = await readErrorDetail(response)
     throw new ProcessRequestError(
       detail
-        ? `Revenue Chief couldn't finish this pass: ${detail}`
-        : `Revenue Chief couldn't finish this pass (HTTP ${response.status}). Please try again.`,
+        ? `Revenue Radar couldn't finish this pass: ${detail}`
+        : `Revenue Radar couldn't finish this pass (HTTP ${response.status}). Please try again.`,
     )
   }
 
@@ -57,14 +57,14 @@ export async function requestMoneyMoves(braindump: string): Promise<ProcessRespo
   try {
     payload = await response.json()
   } catch {
-    throw new ProcessRequestError('Revenue Chief returned an unreadable response. Please try again.')
+    throw new ProcessRequestError('Revenue Radar returned an unreadable response. Please try again.')
   }
 
   try {
     assertProcessResponse(payload, braindump)
   } catch (error) {
     if (error instanceof ContractError) {
-      throw new ProcessRequestError('Revenue Chief returned an incomplete plan. Please try again.')
+      throw new ProcessRequestError('Revenue Radar returned an incomplete plan. Please try again.')
     }
     throw error
   }

@@ -83,7 +83,7 @@ describe('requestMoneyMoves', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')))
 
     await expect(requestMoneyMoves('notes')).rejects.toEqual(
-      new ProcessRequestError("We couldn't reach Revenue Chief. Check the connection and try again."),
+      new ProcessRequestError("We couldn't reach Revenue Radar. Check the connection and try again."),
     )
   })
 
@@ -101,7 +101,7 @@ describe('requestMoneyMoves', () => {
 
     await expect(requestMoneyMoves('notes')).rejects.toEqual(
       new ProcessRequestError(
-        "Revenue Chief couldn't finish this pass: SCORE could not conserve ids",
+        "Revenue Radar couldn't finish this pass: SCORE could not conserve ids",
       ),
     )
   })
@@ -120,7 +120,7 @@ describe('requestMoneyMoves', () => {
 
     await expect(requestMoneyMoves('notes')).rejects.toEqual(
       new ProcessRequestError(
-        "Revenue Chief couldn't finish this pass (HTTP 503). Please try again.",
+        "Revenue Radar couldn't finish this pass (HTTP 503). Please try again.",
       ),
     )
   })
@@ -138,7 +138,7 @@ describe('requestMoneyMoves', () => {
     )
 
     await expect(requestMoneyMoves('notes')).rejects.toEqual(
-      new ProcessRequestError('Revenue Chief returned an unreadable response. Please try again.'),
+      new ProcessRequestError('Revenue Radar returned an unreadable response. Please try again.'),
     )
   })
 
@@ -155,7 +155,7 @@ describe('requestMoneyMoves', () => {
     )
 
     await expect(requestMoneyMoves('notes')).rejects.toEqual(
-      new ProcessRequestError('Revenue Chief returned an incomplete plan. Please try again.'),
+      new ProcessRequestError('Revenue Radar returned an incomplete plan. Please try again.'),
     )
   })
 
@@ -172,7 +172,7 @@ describe('requestMoneyMoves', () => {
     )
 
     await expect(requestMoneyMoves('These notes contain none of the returned commitments.')).rejects.toEqual(
-      new ProcessRequestError('Revenue Chief returned an incomplete plan. Please try again.'),
+      new ProcessRequestError('Revenue Radar returned an incomplete plan. Please try again.'),
     )
   })
 })

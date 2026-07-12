@@ -8,7 +8,7 @@ type ViewState = 'idle' | 'loading' | 'success' | 'error'
 
 function IntroPlaceholder() {
   return (
-    <section className="intro-placeholder" aria-label="What Revenue Chief returns">
+    <section className="intro-placeholder" aria-label="What Revenue Radar returns">
       <p className="eyebrow">One input. One economic decision.</p>
       <div className="intro-steps">
         <article>
@@ -42,7 +42,7 @@ export default function App() {
 
     if (!braindump.trim()) {
       setData(null)
-      setError('Paste at least one commitment before asking Revenue Chief to decide.')
+      setError('Paste at least one commitment before asking Revenue Radar to decide.')
       setViewState('error')
       return
     }
@@ -59,7 +59,7 @@ export default function App() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Revenue Chief couldn't finish this pass. Please try again.",
+          : "Revenue Radar couldn't finish this pass. Please try again.",
       )
       setViewState('error')
     }
@@ -68,12 +68,12 @@ export default function App() {
   return (
     <div className="site-shell">
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Revenue Chief home">
+        <a className="brand" href="#top" aria-label="Revenue Radar home">
           <span className="brand-mark" aria-hidden="true">
             R
           </span>
           <span>
-            Revenue <strong>Chief</strong>
+            Revenue <strong>Radar</strong>
           </span>
         </a>
         <p>Explainable revenue triage for one-person companies</p>
@@ -87,10 +87,10 @@ export default function App() {
               Your business, ranked by <em>revenue</em> — not noise.
             </h1>
             <p className="hero-lede">
-              Paste the messy list. Revenue Chief finds the three commitments that move cash,
+              Paste the messy list. Revenue Radar finds the three commitments that move cash,
               explains the economic logic, and prepares the messages to act.
             </p>
-            <div className="proof-strip" aria-label="How Revenue Chief decides">
+            <div className="proof-strip" aria-label="How Revenue Radar decides">
               <span>Revenue × 3</span>
               <span>Grounded evidence</span>
               <span>Zero setup</span>
@@ -163,7 +163,7 @@ export default function App() {
       </main>
 
       <footer>
-        <p>Revenue Chief</p>
+        <p>Revenue Radar</p>
         <span>Paste → inspect the logic → act.</span>
       </footer>
     </div>

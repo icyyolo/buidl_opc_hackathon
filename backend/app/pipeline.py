@@ -1,4 +1,4 @@
-"""Four-stage, validated Revenue Chief pipeline.
+"""Four-stage, validated Revenue Radar pipeline.
 
 The model is responsible for structured judgment; this module is responsible for
 the contract. Every cross-stage invariant is checked explicitly before downstream
@@ -203,7 +203,7 @@ def _call(system: str, user: str, schema: type[OutputT]) -> OutputT:
     return cast(OutputT, schema.model_validate(parsed))
 
 
-PREAMBLE = """You are the reasoning core of \"Revenue Chief\", an explainable revenue-triage agent for a solo
+PREAMBLE = """You are the reasoning core of \"Revenue Radar\", an explainable revenue-triage agent for a solo
 founder (a one-person company). Today's date is {TODAY} (ISO, Asia/Singapore). Your response
 is constrained by the supplied JSON schema. Populate every field exactly as instructed; do
 not add prose, markdown, or commentary outside the structured response."""
@@ -285,7 +285,7 @@ Return JSON: { \"scored\": [ {id, item, type, due_date, stated_value, source_tex
 
 DECIDE = """
 
-ROLE: Revenue Chief. You are given the scored, priority-ranked items. Make a decisive,
+ROLE: Revenue Radar. You are given the scored, priority-ranked items. Make a decisive,
 realistic plan for TODAY for a founder with limited focused hours.
 
   money_moves: at most THREE items the founder can materially advance today, highest-leverage

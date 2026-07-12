@@ -1,4 +1,4 @@
-"""FastAPI routes for Revenue Chief."""
+"""FastAPI routes for Revenue Radar."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from .pipeline import PipelineError, run_pipeline
 logger = logging.getLogger(__name__)
 _ISO_DATE_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 
-app = FastAPI(title="Revenue Chief API")
+app = FastAPI(title="Revenue Radar API")
 
 
 class ProcessIn(BaseModel):
@@ -55,7 +55,7 @@ def process(body: ProcessIn) -> dict | JSONResponse:
     try:
         return run_pipeline(body.braindump, body.today)
     except PipelineError as exc:
-        logger.exception("Revenue Chief pipeline failed in %s", exc.stage)
+        logger.exception("Revenue Radar pipeline failed in %s", exc.stage)
         return JSONResponse(
             status_code=500,
             content={
@@ -65,7 +65,7 @@ def process(body: ProcessIn) -> dict | JSONResponse:
             },
         )
     except Exception:
-        logger.exception("Unexpected Revenue Chief pipeline failure")
+        logger.exception("Unexpected Revenue Radar pipeline failure")
         return JSONResponse(
             status_code=500,
             content={

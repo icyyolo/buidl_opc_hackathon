@@ -1,6 +1,6 @@
 # PLAN_FRONTEND.md — Person B: Frontend & UI
 
-> Your half of **Revenue Chief: Explainable Revenue Triage for One-Person Companies**, a
+> Your half of **Revenue Radar: Explainable Revenue Triage for One-Person Companies**, a
 > 6-hour hackathon build (BUIDL_OPC_Hackathon_SG, AI category). The canonical raw demo input
 > remains in [PLAN.md §5](PLAN.md); everything else needed for the frontend is here. Person A
 > builds the backend in parallel; you build entirely against the **frozen mock

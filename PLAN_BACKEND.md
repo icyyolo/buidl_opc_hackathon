@@ -1,6 +1,6 @@
 # PLAN_BACKEND.md — Person A: Backend & Pipeline
 
-> Your half of **Revenue Chief: Explainable Revenue Triage for One-Person Companies**
+> Your half of **Revenue Radar: Explainable Revenue Triage for One-Person Companies**
 > (BUIDL_OPC_Hackathon_SG, AI category).
 > Full context in [PLAN.md](PLAN.md); this is everything *you* need. Person B builds the UI in
 > parallel against the frozen contract — don't change field names without telling them.

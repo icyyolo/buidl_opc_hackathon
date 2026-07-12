@@ -112,7 +112,7 @@ afterEach(() => {
   })
 })
 
-describe('Revenue Chief intake', () => {
+describe('Revenue Radar intake', () => {
   test('prefills the exact canonical sample and exposes the exact CTA without requesting data', () => {
     render(<App />)
 
@@ -200,7 +200,7 @@ describe('Revenue Chief intake', () => {
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Paste at least one commitment before asking Revenue Chief to decide.',
+      'Paste at least one commitment before asking Revenue Radar to decide.',
     )
     expect(screen.queryByText("Finding today's Money Moves…")).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Find My Money Moves' })).toBeEnabled()
@@ -208,7 +208,7 @@ describe('Revenue Chief intake', () => {
   })
 })
 
-describe('Revenue Chief result rendering', () => {
+describe('Revenue Radar result rendering', () => {
   test('renders the exact ordered Money Moves with economic logic and selected drafts', async () => {
     const payload = clonePayload()
     await submitSuccessfulPayload(payload)
@@ -442,7 +442,7 @@ describe('recoverable request failures', () => {
   test('recovers from a network failure and retries the same submission', async () => {
     await expectFailureThenRetry(() => {
       fetchMock.mockRejectedValueOnce(new TypeError('offline'))
-    }, "We couldn't reach Revenue Chief. Check the connection and try again.")
+    }, "We couldn't reach Revenue Radar. Check the connection and try again.")
 
     const firstBody = fetchMock.mock.calls[0][1]?.body
     const secondBody = fetchMock.mock.calls[1][1]?.body
@@ -452,7 +452,7 @@ describe('recoverable request failures', () => {
   test('surfaces a non-OK API detail and successfully retries', async () => {
     await expectFailureThenRetry(() => {
       fetchMock.mockResolvedValueOnce(jsonResponse({ detail: 'model unavailable' }, 503))
-    }, "Revenue Chief couldn't finish this pass: model unavailable")
+    }, "Revenue Radar couldn't finish this pass: model unavailable")
   })
 
   test('rejects a malformed success payload and successfully retries', async () => {
@@ -465,6 +465,6 @@ describe('recoverable request failures', () => {
           drafts: [],
         }),
       )
-    }, 'Revenue Chief returned an incomplete plan. Please try again.')
+    }, 'Revenue Radar returned an incomplete plan. Please try again.')
   })
 })

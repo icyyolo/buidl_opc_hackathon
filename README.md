@@ -1,12 +1,12 @@
-# Revenue Chief
+# Revenue Radar
 
-Revenue Chief is an explainable revenue-triage assistant for solo founders and one-person companies. A founder provides an unstructured brain dump of tasks, messages, deadlines, client commitments, and stated deal values. The product is designed to identify the three actions most likely to move cash today, explain the reasoning, park lower-value work safely, identify blockers, and prepare the messages needed to act.
+Revenue Radar is an explainable revenue-triage assistant for solo founders and one-person companies. A founder provides an unstructured brain dump of tasks, messages, deadlines, client commitments, and stated deal values. The product is designed to identify the three actions most likely to move cash today, explain the reasoning, park lower-value work safely, identify blockers, and prepare the messages needed to act.
 
 > **Current status:** the React frontend, response contract, mock payload, and health endpoint are implemented. The live AI pipeline and `POST /process` backend route described in the project plans are **not yet implemented in this checkout**. The frontend therefore builds and tests successfully, but submitting the form to the current backend returns `404` until the process endpoint is added.
 
 ## Product idea
 
-Revenue Chief is deliberately narrower than a general task manager or calendar planner. It asks:
+Revenue Radar is deliberately narrower than a general task manager or calendar planner. It asks:
 
 > Which commitment changes cash today, and what is the evidence?
 

@@ -1,4 +1,4 @@
-# PLAN.md — Revenue Chief: Explainable Revenue Triage for One-Person Companies
+# PLAN.md — Revenue Radar: Explainable Revenue Triage for One-Person Companies
 
 > **Event:** BUIDL_OPC_Hackathon_SG (Claude SG Community × amber.ac × Amber Group). Category: AI.
 > **Theme:** Next-generation One Person Companies via agentic services.
@@ -16,11 +16,11 @@
 
 ## 1. Problem + Solution (pitch paragraph)
 
-Solo founders do not need another task list — they need to know which commitment changes cash today. **Revenue Chief** turns one messy founder brain-dump into three **Money Moves**. It extracts every obligation, classifies it as **Collect, Close, Deliver, Retain, Grow, or Operate**, then ranks it using revenue proximity and urgency. Every decision shows the source evidence and the cost of waiting. Safe work is deliberately parked, blockers get a concrete unblock action, and the selected client replies are drafted using the founder's actual details. No integrations or setup: paste the chaos, inspect the economic logic, and act.
+Solo founders do not need another task list — they need to know which commitment changes cash today. **Revenue Radar** turns one messy founder brain-dump into three **Money Moves**. It extracts every obligation, classifies it as **Collect, Close, Deliver, Retain, Grow, or Operate**, then ranks it using revenue proximity and urgency. Every decision shows the source evidence and the cost of waiting. Safe work is deliberately parked, blockers get a concrete unblock action, and the selected client replies are drafted using the founder's actual details. No integrations or setup: paste the chaos, inspect the economic logic, and act.
 
 ### Competitive wedge
 
-Calendar planners schedule already-known tasks. Inbox assistants triage email. Connected AI chiefs of staff build persistent context across apps. Revenue Chief makes a narrower promise: **one unstructured, cross-domain founder dump becomes an auditable revenue decision in under 30 seconds**. Its defensible combination is zero-setup intake, explicit revenue-motion classification, deterministic revenue-first scoring, source-grounded reasoning, complete Money Moves/Parked/Blocked triage, and action-ready messages. The novelty claim is this complete opinionated workflow — not the generic "AI chief of staff," "brain dump to plan," or "explainable ranking" categories.
+Calendar planners schedule already-known tasks. Inbox assistants triage email. Connected AI chiefs of staff build persistent context across apps. Revenue Radar makes a narrower promise: **one unstructured, cross-domain founder dump becomes an auditable revenue decision in under 30 seconds**. Its defensible combination is zero-setup intake, explicit revenue-motion classification, deterministic revenue-first scoring, source-grounded reasoning, complete Money Moves/Parked/Blocked triage, and action-ready messages. The novelty claim is this complete opinionated workflow — not the generic "AI chief of staff," "brain dump to plan," or "explainable ranking" categories.
 
 ---
 
@@ -100,7 +100,7 @@ Each stage has a matching Pydantic response model passed to `client.responses.pa
 All four share a preamble injected at the top:
 
 ```
-You are the reasoning core of "Revenue Chief", an explainable revenue-triage agent for a solo
+You are the reasoning core of "Revenue Radar", an explainable revenue-triage agent for a solo
 founder (a one-person company). Today's date is {TODAY} (ISO, Asia/Singapore). Your response
 is constrained by the supplied JSON schema. Populate every field exactly as instructed; do
 not add prose, markdown, or commentary outside the structured response.
@@ -190,7 +190,7 @@ Return JSON: { "scored": [ {id, item, type, due_date, stated_value, source_text,
 ### Stage 3 — DECIDE (today's three Money Moves / Park / Blocked)
 
 ```
-ROLE: Revenue Chief. You are given the scored, priority-ranked items. Make a decisive,
+ROLE: Revenue Radar. You are given the scored, priority-ranked items. Make a decisive,
 realistic plan for TODAY for a founder with limited focused hours.
 
   money_moves: at most THREE items the founder can materially advance today, highest-leverage
@@ -298,7 +298,7 @@ ok brain dump before I lose it:
 - **[0:00–0:20] Problem.** "I'm a solo founder. This" — gesture at the textarea — "is my business at 9am: nine commitments across sales, delivery, cash collection, and admin. A task list stores the chaos. I need an economic decision." Click **Find My Money Moves**.
 - **[0:20–0:45] Explain the pipeline while it runs.** While the single loading indicator is visible: "It extracts every commitment, identifies the money motion, grounds the judgment in my own words, ranks revenue three times more heavily than urgency, and prepares only the messages needed to act. Four specialist stages, one auditable decision."
 - **[0:45–1:15] The payoff — three Money Moves.** "In seconds it found three different revenue motions: collect S$4,800 already earned, close a S$12,000 renewal, and advance an S$18,000 proposal." Point at the badges, source evidence, and cost-of-delay lines. "I can see exactly why each one is here — and what waiting could cost."
-- **[1:15–1:40] Parked + Blocked.** "It also makes the decision most planners avoid: what *not* to do. GST and the recruiter are parked safely. The landing page is blocked on Dave, and Revenue Chief gives me the exact unblock request instead of pretending I can work on it."
+- **[1:15–1:40] Parked + Blocked.** "It also makes the decision most planners avoid: what *not* to do. GST and the recruiter are parked safely. The landing page is blocked on Dave, and Revenue Radar gives me the exact unblock request instead of pretending I can work on it."
 - **[1:40–2:00] Prepared action.** Open the Acme Money Move and its attached draft. "The decision flows straight into action: Sarah's name, S$12,000 annual price, 10% signing incentive, and Friday deadline are already in the reply. It did not draft the podcast or recruiter emails because they are not today's moves. I review, copy, and send."
 
 **Delivery notes:** narrate *while* it runs (don't wait in silence); if a call is slow, keep talking over the spinner; land on the draft — it's the strongest "wow".
@@ -344,7 +344,7 @@ them. Two self-contained briefs:
 - **[PLAN_BACKEND.md](PLAN_BACKEND.md)** — Person A: FastAPI, the 4-stage OpenAI pipeline,
   Pydantic Structured Outputs, priority computation, semantic validation, and deploy support.
 - **[PLAN_FRONTEND.md](PLAN_FRONTEND.md)** — Person B: Vite + React, the textarea, the four
-  Revenue Chief sections, Money Move action cards, the loading state, and demo polish. Builds
+  Revenue Radar sections, Money Move action cards, the loading state, and demo polish. Builds
   against a **frozen mock** of the contract, so it never waits on the backend.
 
 **Roles:** Person B (Frontend) = **you** — and because you hold the `OPENAI_API_KEY`, the Vercel
