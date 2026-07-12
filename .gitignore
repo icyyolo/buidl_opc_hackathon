@@ -1,3 +1,37 @@
+# Local secrets and environment overrides
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / Vite
+node_modules/
+frontend/dist/
+.vite/
+coverage/
+*.log
+
+# Deployment and local tooling
+.vercel/
+.agents/
+.codex/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
 .env
 .venv/
 __pycache__/

@@ -1,1 +1,1 @@
-"""FastAPI application and revenue-triage pipeline."""
+"""Revenue Chief backend application package."""

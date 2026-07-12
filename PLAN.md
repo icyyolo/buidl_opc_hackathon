@@ -578,3 +578,76 @@ def run_pipeline(braindump: str, today: str) -> dict:
 `backend/app/main.py` exposes `GET /health` → `{"status":"ok"}` and `POST /process` → `run_pipeline(...)`, wrapped in try/except returning a clean 500 with the failing stage so demo-day errors are debuggable.
 
 > **Structured Outputs requirement:** `client.responses.parse(..., text_format=Schema)` removes manual `json.loads` and constrains each response to its Pydantic schema. It does not replace semantic validation: verify 1–5 score ranges; unique and conserved IDs; `source_text`, `evidence`, and non-null `stated_value` against the original input; no more than three Money Moves; an exact Money Moves/Park/Blocked partition; and drafts whose ids/purposes exactly match the server-selected targets. Confirm `gpt-5.6-sol` account access and all four schemas with the sample in Block 0.
+
+---
+
+## 8. Post-build frontend audit — findings & UI improvements
+
+> Added **2026-07-12** after a code vet + **live browser test** of the built `frontend/`
+> (branch `feat/frontend`). Status: frontend is **complete and healthy** — `tsc -b` clean,
+> 51/51 unit tests pass, production build succeeds (66 KB gzip), and every UI path below was
+> driven live in a real browser against a controllable mock backend (not just the test suite).
+> The items here are refinements + one integration-day risk to fix, not blockers.
+
+### 8.1 Verified working live (browser, mock backend)
+
+| Path | Result |
+|---|---|
+| Initial load | ✅ Hero, proof-strip, pre-filled 950-char sample, live char count, CTA, 3-step intro |
+| Happy path | ✅ Spinner → all 4 sections; Money Moves ordered Nordic `COLLECT` P20 / Acme `CLOSE` P20 / Meridian `CLOSE` P19; grounded evidence, cost-of-delay, why/next/done, Meridian open-question, drafts, 1 blocked + 5 parked cards, 9-row audit with `—`/`No due date` |
+| Copy draft | ✅ Flips to "Copied" + status; `writeText` succeeds on secure `localhost` |
+| Empty input | ✅ Client guard fires, red box, **no** network call |
+| HTTP 503 | ✅ Surfaces backend stage detail ("…EXTRACT stage failed: model unavailable") |
+| Malformed 200 | ✅ Contract guard → "returned an incomplete plan. Please try again." |
+| Slow (6s) | ✅ Spinner + disabled textarea/button held for full delay, then resolved |
+
+### 8.2 Findings ranked by impact
+
+1. **[HIGH — fix at integration] Strict validation is a hard render-gate that will blank the
+   screen on a *renderable* plan.** `assertProcessResponse` ([frontend/src/contract.ts](frontend/src/contract.ts))
+   enforces cross-stage **invariants** (priority formula, sort order, evidence/value grounding,
+   exact draft-target match, `sameBaseFields`) and throws `ContractError` → generic error, **no
+   results**. **Reproduced live:** a structurally-perfect payload (verified valid by curl) was
+   rejected with "incomplete plan" purely because `sourceBraindump.includes(source_text)` failed
+   when the submitted text didn't exactly substring-match the model's evidence — confirmed it was
+   grounding, not timing, by reproducing it in instant mode. On demo day any whitespace/smart-quote
+   drift between `evidence` and input blanks the screen. **Fix:** split validation — keep
+   *structural* checks (shapes/types/enums/required strings) as hard gates (render would crash
+   without them); demote *invariant* checks to `console.warn` in production (keep them hard in
+   tests/dev to catch backend bugs at the 15:15 integration). A slightly-imperfect rendered plan
+   beats a blank error live.
+2. **[MED] `today` is hard-coded** to `'2026-07-12'` ([frontend/src/api.ts](frontend/src/api.ts),
+   `DEMO_TODAY`). Breaks "paste your own" on any other day (relative dates like "Friday" anchor to
+   July 12) and contradicts §Standing-assumptions ("today … from the server clock"). **Fix:**
+   default to `new Date().toISOString().slice(0,10)`; keep an optional pin for the scripted demo.
+3. **[MED] No client-side request timeout** on a 4-sequential-LLM call. Bare `fetch`, no
+   `AbortController` — a hung backend spins forever locally. **Fix:** ~90s `AbortController` +
+   friendly message; ideally reassure past ~15s ("still working, this can take up to a minute").
+4. **[LOW] Render order depends on the backend sorting correctly.** "All Commitments" renders
+   `data.scored` in raw array order. Since every row has `priority`, sort client-side as a safety
+   net and drop the sort-order assertion.
+5. **[LOW] Missing motion-edge colors** for `retain`/`grow`/`operate` money cards
+   ([frontend/src/styles.css](frontend/src/styles.css) defines only collect/close/deliver);
+   a `retain` Money Move (plausible for the Acme *renewal*) falls back to the generic green edge.
+
+### 8.3 Suggested UI improvements (polish, drop-in)
+
+- **Graceful degradation on validation failure** (finding #1) — render what's structurally valid
+  instead of a blank error screen. Highest-value UI change.
+- **Keep the intro/last-results visible on error** — currently `viewState==='error'` renders
+  neither intro nor results ([frontend/src/App.tsx](frontend/src/App.tsx)), leaving the page below
+  the form blank. Keep `IntroPlaceholder` (or prior results) mounted so the error reads as a
+  transient banner, not a wipe.
+- **Elapsed-time reassurance in the loading state** — for the realistic 30–60s pipeline, add a
+  quiet "this can take up to a minute" after ~15s (still honest, no fake per-stage progress).
+- **Human-friendly dates** — `Due Jul 12` instead of `Due 2026-07-12` in cards/rows (cosmetic).
+- **Fill the retain/grow/operate edge colors** so every Money Move card has a motion accent.
+
+### 8.4 Applied + environment notes
+
+- **Applied:** `frontend/package.json` `"dev": "vite"` → `"dev": "vite --host"` so the dev server
+  is reachable from a Windows/host browser by default (WSL preview needs `0.0.0.0` binding).
+- **Local-dev CORS gap:** `backend/app/main.py` has no `CORSMiddleware`. Same-origin on Vercel so
+  prod is fine, but running vite + `uvicorn` on separate ports locally (the documented dev flow)
+  fails the cross-origin `/process` call. Add `CORSMiddleware` (dev-only) or a vite proxy so the
+  15:15 integration doesn't stall on CORS.
