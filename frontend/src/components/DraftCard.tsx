@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Draft } from '../types'
 
 interface DraftCardProps {
@@ -26,14 +26,48 @@ async function copyText(text: string): Promise<void> {
 
 export function DraftCard({ draft }: DraftCardProps) {
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const [showCopiedConfirmation, setShowCopiedConfirmation] = useState(false)
+  const [announcementRevision, setAnnouncementRevision] = useState(0)
+  const confirmationTimerRef = useRef<number | null>(null)
+  const copyAttemptRef = useRef(0)
   const clipboardText = `Subject: ${draft.subject}\n\n${draft.body}`
 
+  useEffect(() => {
+    return () => {
+      if (confirmationTimerRef.current !== null) {
+        window.clearTimeout(confirmationTimerRef.current)
+      }
+    }
+  }, [])
+
   async function handleCopy() {
+    const attempt = copyAttemptRef.current + 1
+    copyAttemptRef.current = attempt
+
     try {
       await copyText(clipboardText)
+      if (attempt !== copyAttemptRef.current) return
+
       setCopyState('copied')
+      setAnnouncementRevision((revision) => revision + 1)
+      setShowCopiedConfirmation(true)
+      if (confirmationTimerRef.current !== null) {
+        window.clearTimeout(confirmationTimerRef.current)
+      }
+      confirmationTimerRef.current = window.setTimeout(() => {
+        setShowCopiedConfirmation(false)
+        confirmationTimerRef.current = null
+      }, 1500)
     } catch {
+      if (attempt !== copyAttemptRef.current) return
+
+      if (confirmationTimerRef.current !== null) {
+        window.clearTimeout(confirmationTimerRef.current)
+        confirmationTimerRef.current = null
+      }
       setCopyState('failed')
+      setAnnouncementRevision((revision) => revision + 1)
+      setShowCopiedConfirmation(false)
     }
   }
 
@@ -50,12 +84,17 @@ export function DraftCard({ draft }: DraftCardProps) {
           onClick={handleCopy}
           aria-label={`Copy draft: ${draft.subject}`}
         >
-          {copyState === 'copied' ? 'Copied' : 'Copy'}
+          {showCopiedConfirmation ? 'Copied ✓' : 'Copy'}
         </button>
       </div>
       <pre>{draft.body}</pre>
       {copyState !== 'idle' && (
-        <p className={`copy-status ${copyState}`} role="status" aria-live="polite">
+        <p
+          className={`copy-status ${copyState}`}
+          key={announcementRevision}
+          role="status"
+          aria-live="polite"
+        >
           {copyState === 'copied' && 'Subject and message copied.'}
           {copyState === 'failed' && 'Copy failed — select the message above.'}
         </p>

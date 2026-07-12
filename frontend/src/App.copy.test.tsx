@@ -37,7 +37,7 @@ describe('Revenue Chief positioning copy', () => {
     ).toBeInTheDocument()
     expect(
       within(hero).getByText(
-        'Revenue Chief proves what matters from your own words, parks the safe work, unblocks what is stuck, and prepares only the messages needed to act.',
+        'Revenue Radar proves what matters from your own words, parks the safe work, unblocks what is stuck, and prepares only the messages needed to act.',
       ),
     ).toBeInTheDocument()
 

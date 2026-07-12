@@ -1,10 +1,23 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { requestMoneyMoves } from './api'
 import { Results } from './components/Results'
 import { SAMPLE_BRAINDUMP } from './sampleBraindump'
 import type { ProcessResponse } from './types'
 
 type ViewState = 'idle' | 'loading' | 'success' | 'error'
+type Theme = 'light' | 'dark'
+
+const THEME_STORAGE_KEY = 'revenue-radar-theme'
+
+function resolveInitialTheme(): Theme {
+  const current = document.documentElement.dataset.theme
+  if (current === 'light' || current === 'dark') return current
+
+  const prefersDark =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  return prefersDark ? 'dark' : 'light'
+}
 
 function IntroPlaceholder() {
   return (
@@ -59,6 +72,58 @@ export default function App() {
   const [viewState, setViewState] = useState<ViewState>('idle')
   const [data, setData] = useState<ProcessResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [theme, setTheme] = useState<Theme>(resolveInitialTheme)
+  const resultsRef = useRef<HTMLDivElement>(null)
+  const resultsHeadingRef = useRef<HTMLHeadingElement>(null)
+  const trimmedLength = braindump.trim().length
+  const countTone = trimmedLength < 80 ? 'short' : 'neutral'
+  const countGuidance =
+    trimmedLength === 0
+      ? 'Start with one commitment.'
+      : trimmedLength < 80
+        ? 'A little more context helps.'
+        : 'Ready to scan.'
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+    } catch {
+      // Ignore storage failures (e.g. private mode); the theme still applies for this session.
+    }
+  }, [theme])
+
+  useEffect(() => {
+    if (viewState !== 'success' || !data) return
+
+    const prefersReducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    resultsHeadingRef.current?.focus({ preventScroll: true })
+    resultsRef.current?.scrollIntoView?.({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    })
+  }, [data, viewState])
+
+  function toggleTheme() {
+    setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
+  }
+
+  function handleClear() {
+    setBraindump('')
+    setData(null)
+    setError(null)
+    setViewState('idle')
+  }
+
+  function handleIntakeKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault()
+      event.currentTarget.form?.requestSubmit()
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -99,7 +164,18 @@ export default function App() {
             Revenue <strong>Radar</strong>
           </span>
         </a>
-        <p>Three moves. Zero dropped commitments.</p>
+        <div className="topbar-actions">
+          <p>Three moves. Zero dropped commitments.</p>
+          <button
+            className="theme-toggle"
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-pressed={theme === 'dark'}
+          >
+            <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
+          </button>
+        </div>
       </header>
 
       <main id="top">
@@ -110,7 +186,7 @@ export default function App() {
               Paste the chaos. Find the <em>3 moves</em> that can move cash today.
             </h1>
             <p className="hero-lede">
-              Revenue Chief proves what matters from your own words, parks the safe work, unblocks
+              Revenue Radar proves what matters from your own words, parks the safe work, unblocks
               what is stuck, and prepares only the messages needed to act.
             </p>
             {viewState !== 'loading' && (
@@ -129,7 +205,19 @@ export default function App() {
                 <p className="eyebrow">Founder brain-dump</p>
                 <h2>What is competing for your attention?</h2>
               </div>
-              <span className="sample-label">Demo sample loaded</span>
+              <div className="intake-controls">
+                {braindump === SAMPLE_BRAINDUMP && (
+                  <span className="sample-label">Demo sample loaded</span>
+                )}
+                <button
+                  className="clear-button"
+                  type="button"
+                  onClick={handleClear}
+                  disabled={viewState === 'loading' || braindump.length === 0}
+                >
+                  Clear
+                </button>
+              </div>
             </div>
             <label className="sr-only" htmlFor="braindump">
               Founder brain-dump
@@ -139,6 +227,7 @@ export default function App() {
               name="braindump"
               value={braindump}
               onChange={(event) => setBraindump(event.target.value)}
+              onKeyDown={handleIntakeKeyDown}
               rows={15}
               spellCheck="true"
               aria-describedby="brain-help brain-count"
@@ -146,8 +235,13 @@ export default function App() {
             />
             <div className="intake-footer">
               <div>
-                <p id="brain-help">Edit the sample or paste your own tasks, messages, and deadlines.</p>
-                <span id="brain-count">{braindump.length.toLocaleString()} characters</span>
+                <p id="brain-help">
+                  Edit the sample or paste your own tasks, messages, and deadlines. Press Cmd/Ctrl+Enter
+                  to submit.
+                </p>
+                <span id="brain-count" className={`character-count character-count-${countTone}`}>
+                  {braindump.length.toLocaleString()} characters · {countGuidance}
+                </span>
               </div>
               <button
                 className="primary-button"
@@ -174,7 +268,11 @@ export default function App() {
             <p className="sr-only" role="status" aria-live="polite">
               Revenue plan ready. Four result sections are now available.
             </p>
-            <Results data={data} />
+            <Results
+              data={data}
+              resultsRef={resultsRef}
+              resultsHeadingRef={resultsHeadingRef}
+            />
           </>
         ) : viewState === 'loading' ? (
           <LoadingPanel />
