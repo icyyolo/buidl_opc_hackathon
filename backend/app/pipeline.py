@@ -18,7 +18,7 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstra
 
 load_dotenv()
 
-MODEL = "gpt-5.6-sol"
+MODEL = "gpt-5.6-luna"
 
 PipelineStage = Literal["INPUT", "EXTRACT", "SCORE", "DECIDE", "PREPARE"]
 ItemId = Annotated[str, StringConstraints(pattern=r"^i[1-9][0-9]*$")]
