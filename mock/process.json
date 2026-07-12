@@ -1,0 +1,164 @@
+{
+  "items": [
+    {
+      "id": "i1", "item": "Send Acme revised annual quote", "type": "email_owed",
+      "due_date": "2026-07-12", "stated_value": "S$12,000/year",
+      "source_text": "Acme (Sarah) emailed twice about their renewal. She wants the revised annual quote today. Price is S$12,000/year with 10% off if they sign by Friday.",
+      "context": "Sarah at Acme emailed twice about the renewal and wants the revised annual quote today. The price is S$12,000/year with a 10% incentive for signing by Friday."
+    },
+    {
+      "id": "i2", "item": "Reply to podcast host", "type": "email_owed",
+      "due_date": null, "stated_value": null,
+      "source_text": "still owe the podcast guy a reply about coming on the show, low prio but he's been waiting 2 wks",
+      "context": "The podcast host has waited two weeks, but the founder explicitly marked it low priority."
+    },
+    {
+      "id": "i3", "item": "Chase Nordic Labs invoice #204", "type": "email_owed",
+      "due_date": "2026-07-10", "stated_value": "S$4,800",
+      "source_text": "Nordic Labs invoice #204 for S$4,800 was due last Friday. James in AP is the contact; need to ask whether anything is blocking payment.",
+      "context": "Nordic Labs owes S$4,800 on invoice #204, which is overdue. James in AP is the contact and should be asked what is blocking payment."
+    },
+    {
+      "id": "i4", "item": "Finish generic onboarding deck", "type": "task",
+      "due_date": "2026-07-16", "stated_value": null,
+      "source_text": "finish the generic onboarding deck template by Thursday if there is time; no client is waiting on it",
+      "context": "This is a reusable internal template desired by Thursday, but no client is waiting for it."
+    },
+    {
+      "id": "i5", "item": "Redesign landing page after logo arrives", "type": "task",
+      "due_date": null, "stated_value": null,
+      "source_text": "Dave the designer still hasn't sent the new logo files, blocked on the landing page redesign until then",
+      "context": "The landing-page redesign cannot progress until Dave sends the new logo files."
+    },
+    {
+      "id": "i6", "item": "File GST and taxes", "type": "deadline",
+      "due_date": "2026-07-31", "stated_value": null,
+      "source_text": "taxes / GST filing due end of month sometime",
+      "context": "GST and tax filing is due at the end of July, with no earlier consequence stated."
+    },
+    {
+      "id": "i7", "item": "Reply to recruiter", "type": "email_owed",
+      "due_date": null, "stated_value": null,
+      "source_text": "reply to that recruiter, not urgent",
+      "context": "The founder owes a recruiter a reply and explicitly says it is not urgent."
+    },
+    {
+      "id": "i8", "item": "Schedule potential co-founder coffee", "type": "task",
+      "due_date": null, "stated_value": null,
+      "source_text": "coffee chat w/ potential co-founder, want to schedule for next week",
+      "context": "The founder wants a relationship-building coffee chat next week; no immediate outcome is stated."
+    },
+    {
+      "id": "i9", "item": "Send Meridian revised scope", "type": "email_owed",
+      "due_date": "2026-07-13", "stated_value": "S$18,000",
+      "source_text": "Meridian has an S$18,000 budget. They asked yesterday for a revised scope removing analytics but keeping onboarding; they want it tomorrow and decide on Wednesday.",
+      "context": "Meridian has an S$18,000 budget and wants a revised scope tomorrow, removing analytics but retaining onboarding, before its Wednesday decision."
+    }
+  ],
+  "scored": [
+    {
+      "id": "i3", "item": "Chase Nordic Labs invoice #204", "type": "email_owed",
+      "due_date": "2026-07-10", "stated_value": "S$4,800",
+      "source_text": "Nordic Labs invoice #204 for S$4,800 was due last Friday. James in AP is the contact; need to ask whether anything is blocking payment.",
+      "context": "Nordic Labs owes S$4,800 on invoice #204, which is overdue. James in AP is the contact and should be asked what is blocking payment.",
+      "revenue_motion": "collect", "revenue_proximity": 5, "urgency": 5,
+      "evidence": "was due last Friday", "cost_of_delay": "Another day leaves S$4,800 of earned cash uncollected.",
+      "missing_fact": null, "priority": 20
+    },
+    {
+      "id": "i1", "item": "Send Acme revised annual quote", "type": "email_owed",
+      "due_date": "2026-07-12", "stated_value": "S$12,000/year",
+      "source_text": "Acme (Sarah) emailed twice about their renewal. She wants the revised annual quote today. Price is S$12,000/year with 10% off if they sign by Friday.",
+      "context": "Sarah at Acme emailed twice about the renewal and wants the revised annual quote today. The price is S$12,000/year with a 10% incentive for signing by Friday.",
+      "revenue_motion": "close", "revenue_proximity": 5, "urgency": 5,
+      "evidence": "She wants the revised annual quote today", "cost_of_delay": "Waiting reduces the time Sarah has to use the Friday signing incentive.",
+      "missing_fact": null, "priority": 20
+    },
+    {
+      "id": "i9", "item": "Send Meridian revised scope", "type": "email_owed",
+      "due_date": "2026-07-13", "stated_value": "S$18,000",
+      "source_text": "Meridian has an S$18,000 budget. They asked yesterday for a revised scope removing analytics but keeping onboarding; they want it tomorrow and decide on Wednesday.",
+      "context": "Meridian has an S$18,000 budget and wants a revised scope tomorrow, removing analytics but retaining onboarding, before its Wednesday decision.",
+      "revenue_motion": "close", "revenue_proximity": 5, "urgency": 4,
+      "evidence": "they want it tomorrow and decide on Wednesday", "cost_of_delay": "A late revision could exclude the proposal from Wednesday's S$18,000 decision.",
+      "missing_fact": "The Meridian contact's name is not stated.", "priority": 19
+    },
+    {
+      "id": "i5", "item": "Redesign landing page after logo arrives", "type": "task",
+      "due_date": null, "stated_value": null,
+      "source_text": "Dave the designer still hasn't sent the new logo files, blocked on the landing page redesign until then",
+      "context": "The landing-page redesign cannot progress until Dave sends the new logo files.",
+      "revenue_motion": "grow", "revenue_proximity": 2, "urgency": 2,
+      "evidence": "blocked on the landing page redesign until then", "cost_of_delay": "The redesign remains stalled until the logo files arrive.",
+      "missing_fact": "No deadline for the landing-page redesign is stated.", "priority": 8
+    },
+    {
+      "id": "i6", "item": "File GST and taxes", "type": "deadline",
+      "due_date": "2026-07-31", "stated_value": null,
+      "source_text": "taxes / GST filing due end of month sometime",
+      "context": "GST and tax filing is due at the end of July, with no earlier consequence stated.",
+      "revenue_motion": "operate", "revenue_proximity": 2, "urgency": 2,
+      "evidence": "due end of month sometime", "cost_of_delay": "No material cost of waiting is stated.",
+      "missing_fact": "Any filing preparation already completed is unknown.", "priority": 8
+    },
+    {
+      "id": "i8", "item": "Schedule potential co-founder coffee", "type": "task",
+      "due_date": null, "stated_value": null,
+      "source_text": "coffee chat w/ potential co-founder, want to schedule for next week",
+      "context": "The founder wants a relationship-building coffee chat next week; no immediate outcome is stated.",
+      "revenue_motion": "grow", "revenue_proximity": 2, "urgency": 2,
+      "evidence": "want to schedule for next week", "cost_of_delay": "No material cost of waiting is stated.",
+      "missing_fact": "No concrete business objective for the meeting is stated.", "priority": 8
+    },
+    {
+      "id": "i2", "item": "Reply to podcast host", "type": "email_owed",
+      "due_date": null, "stated_value": null,
+      "source_text": "still owe the podcast guy a reply about coming on the show, low prio but he's been waiting 2 wks",
+      "context": "The podcast host has waited two weeks, but the founder explicitly marked it low priority.",
+      "revenue_motion": "grow", "revenue_proximity": 2, "urgency": 1,
+      "evidence": "low prio but he's been waiting 2 wks", "cost_of_delay": "Another day may add minor relationship friction, but no commercial deadline is stated.",
+      "missing_fact": "The show's audience relevance is unknown.", "priority": 7
+    },
+    {
+      "id": "i4", "item": "Finish generic onboarding deck", "type": "task",
+      "due_date": "2026-07-16", "stated_value": null,
+      "source_text": "finish the generic onboarding deck template by Thursday if there is time; no client is waiting on it",
+      "context": "This is a reusable internal template desired by Thursday, but no client is waiting for it.",
+      "revenue_motion": "operate", "revenue_proximity": 1, "urgency": 3,
+      "evidence": "no client is waiting on it", "cost_of_delay": "No material cost of waiting is stated.",
+      "missing_fact": null, "priority": 6
+    },
+    {
+      "id": "i7", "item": "Reply to recruiter", "type": "email_owed",
+      "due_date": null, "stated_value": null,
+      "source_text": "reply to that recruiter, not urgent",
+      "context": "The founder owes a recruiter a reply and explicitly says it is not urgent.",
+      "revenue_motion": "operate", "revenue_proximity": 1, "urgency": 1,
+      "evidence": "not urgent", "cost_of_delay": "No material cost of waiting is stated.",
+      "missing_fact": null, "priority": 4
+    }
+  ],
+  "plan": {
+    "money_moves": [
+      { "id": "i3", "why_today": "Collect S$4,800 already earned and now overdue.", "next_action": "Email James in AP to ask what is blocking invoice #204 and request a payment date.", "done_when": "The chase is sent and a follow-up reminder is set." },
+      { "id": "i1", "why_today": "Close a S$12,000 annual renewal while Sarah can still use the Friday incentive.", "next_action": "Send Sarah the revised quote before 11am.", "done_when": "The quote is sent and a Friday follow-up is scheduled." },
+      { "id": "i9", "why_today": "Advance an S$18,000 proposal before Meridian's Wednesday decision.", "next_action": "Send the revised scope removing analytics and retaining onboarding tomorrow.", "done_when": "The revised scope and a proposed review call are sent." }
+    ],
+    "park": [
+      { "id": "i6", "why_safe": "The filing is due at month-end and no earlier consequence is stated." },
+      { "id": "i8", "why_safe": "The coffee is for next week and has no immediate commercial outcome." },
+      { "id": "i2", "why_safe": "The founder marked it low priority and no commercial deadline is stated." },
+      { "id": "i4", "why_safe": "It is an internal template and no client is waiting for it." },
+      { "id": "i7", "why_safe": "It is explicitly not urgent and has no revenue line of sight." }
+    ],
+    "blocked": [
+      { "id": "i5", "blocker": "Dave has not supplied the final logo files.", "unblock_action": "Ask Dave to deliver the final logo files by 3pm today.", "message_needed": true }
+    ]
+  },
+  "drafts": [
+    { "id": "i3", "purpose": "money_move", "subject": "Invoice #204 — payment timing", "body": "Hi James,\n\nInvoice #204 for S$4,800 was due last Friday, so I wanted to check whether anything is blocking payment on your side. Could you confirm the expected payment date, or let me know if you need anything from me to release it?\n\nThanks,\n[Your name]" },
+    { "id": "i1", "purpose": "money_move", "subject": "Re: Annual plan pricing", "body": "Hi Sarah,\n\nThanks for the follow-up. The revised annual price is S$12,000/year, with 10% off if you sign by Friday.\n\nIf that works for you, I can send the final agreement today so we stay on track for this week.\n\nBest,\n[Your name]" },
+    { "id": "i9", "purpose": "money_move", "subject": "Re: Revised Meridian scope", "body": "Hi [Meridian contact],\n\nI've revised the S$18,000 scope as requested: analytics is removed and onboarding remains included. I'll send the updated scope tomorrow, ahead of your Wednesday decision.\n\nWould a short review call tomorrow help resolve any final questions?\n\nBest,\n[Your name]" },
+    { "id": "i5", "purpose": "unblock", "subject": "Final logo files needed today", "body": "Hi Dave,\n\nThe landing-page redesign is blocked until I have the final logo files. Could you send the approved files by 3pm today, or let me know what is preventing that handoff?\n\nThanks,\n[Your name]" }
+  ]
+}
