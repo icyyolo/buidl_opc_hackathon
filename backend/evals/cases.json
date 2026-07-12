@@ -1,0 +1,1124 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "overdue_invoice_vs_admin",
+      "synthetic": true,
+      "description": "An overdue receivable should outrank low-value internal administration.",
+      "today": "2026-07-14",
+      "braindump": "Invoice ORB-17 for US$2,400 was due on 2026-07-10; email Mina in accounts for payment. Reconcile the office-supply receipts when there is spare time; nobody is waiting on them.",
+      "expectations": {
+        "commitments": [
+          {
+            "key": "overdue_invoice",
+            "marker": "Invoice ORB-17",
+            "stated_value": "US$2,400",
+            "revenue_motion": "collect"
+          },
+          {
+            "key": "receipt_admin",
+            "marker": "office-supply receipts",
+            "stated_value": null,
+            "revenue_motion": "operate"
+          }
+        ],
+        "partition": {
+          "money_moves": ["overdue_invoice"],
+          "park": ["receipt_admin"],
+          "blocked": []
+        },
+        "required_money_moves": ["overdue_invoice"],
+        "allowed_money_moves": ["overdue_invoice"],
+        "draft_targets": [
+          {
+            "key": "overdue_invoice",
+            "purpose": "money_move"
+          }
+        ]
+      },
+      "saved_result": {
+        "items": [
+          {
+            "id": "i1",
+            "item": "Chase invoice ORB-17",
+            "type": "email_owed",
+            "due_date": "2026-07-10",
+            "stated_value": "US$2,400",
+            "source_text": "Invoice ORB-17 for US$2,400 was due on 2026-07-10; email Mina in accounts for payment.",
+            "context": "Invoice ORB-17 for US$2,400 is overdue, and Mina in accounts should be emailed for payment."
+          },
+          {
+            "id": "i2",
+            "item": "Reconcile office-supply receipts",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Reconcile the office-supply receipts when there is spare time; nobody is waiting on them.",
+            "context": "Receipt reconciliation is internal spare-time work, and nobody is waiting for it."
+          }
+        ],
+        "scored": [
+          {
+            "id": "i1",
+            "item": "Chase invoice ORB-17",
+            "type": "email_owed",
+            "due_date": "2026-07-10",
+            "stated_value": "US$2,400",
+            "source_text": "Invoice ORB-17 for US$2,400 was due on 2026-07-10; email Mina in accounts for payment.",
+            "context": "Invoice ORB-17 for US$2,400 is overdue, and Mina in accounts should be emailed for payment.",
+            "revenue_motion": "collect",
+            "revenue_proximity": 5,
+            "urgency": 5,
+            "evidence": "due on 2026-07-10",
+            "cost_of_delay": "Waiting another day leaves US$2,400 of earned cash uncollected.",
+            "missing_fact": null,
+            "priority": 20
+          },
+          {
+            "id": "i2",
+            "item": "Reconcile office-supply receipts",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Reconcile the office-supply receipts when there is spare time; nobody is waiting on them.",
+            "context": "Receipt reconciliation is internal spare-time work, and nobody is waiting for it.",
+            "revenue_motion": "operate",
+            "revenue_proximity": 1,
+            "urgency": 1,
+            "evidence": "nobody is waiting on them",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 4
+          }
+        ],
+        "plan": {
+          "money_moves": [
+            {
+              "id": "i1",
+              "why_today": "Collect US$2,400 of earned cash that is already overdue.",
+              "next_action": "Email Mina with invoice ORB-17 and request the payment date.",
+              "done_when": "The payment chase is sent and a follow-up date is set."
+            }
+          ],
+          "park": [
+            {
+              "id": "i2",
+              "why_safe": "Nobody is waiting for the internal reconciliation, and no near-term consequence is stated."
+            }
+          ],
+          "blocked": []
+        },
+        "drafts": [
+          {
+            "id": "i1",
+            "purpose": "money_move",
+            "subject": "Invoice ORB-17 payment date",
+            "body": "Hi Mina,\n\nInvoice ORB-17 for US$2,400 was due on 2026-07-10. Could you confirm its payment date or let me know if anything is blocking payment?\n\nThanks,\n[Your name]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "active_renewal_vs_networking",
+      "synthetic": true,
+      "description": "An active renewal decision should outrank generic networking without an opportunity.",
+      "today": "2026-07-14",
+      "braindump": "Email Priya the revised Northstar Studio renewal terms worth €9,600/year by 2026-07-15 before Thursday's decision. Introduce myself to five people in the Founders Circle someday; no meeting or opportunity is active.",
+      "expectations": {
+        "commitments": [
+          {
+            "key": "active_renewal",
+            "marker": "Northstar Studio renewal",
+            "stated_value": "€9,600/year",
+            "revenue_motion": "close"
+          },
+          {
+            "key": "generic_networking",
+            "marker": "Founders Circle",
+            "stated_value": null,
+            "revenue_motion": "grow"
+          }
+        ],
+        "partition": {
+          "money_moves": ["active_renewal"],
+          "park": ["generic_networking"],
+          "blocked": []
+        },
+        "required_money_moves": ["active_renewal"],
+        "allowed_money_moves": ["active_renewal"],
+        "draft_targets": [
+          {
+            "key": "active_renewal",
+            "purpose": "money_move"
+          }
+        ]
+      },
+      "saved_result": {
+        "items": [
+          {
+            "id": "i1",
+            "item": "Send Northstar renewal terms",
+            "type": "email_owed",
+            "due_date": "2026-07-15",
+            "stated_value": "€9,600/year",
+            "source_text": "Email Priya the revised Northstar Studio renewal terms worth €9,600/year by 2026-07-15 before Thursday's decision.",
+            "context": "Priya needs revised terms for Northstar Studio's €9,600/year renewal by tomorrow, before Thursday's decision."
+          },
+          {
+            "id": "i2",
+            "item": "Meet Founders Circle members",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Introduce myself to five people in the Founders Circle someday; no meeting or opportunity is active.",
+            "context": "This is generic networking with no active meeting, opportunity, or deadline."
+          }
+        ],
+        "scored": [
+          {
+            "id": "i1",
+            "item": "Send Northstar renewal terms",
+            "type": "email_owed",
+            "due_date": "2026-07-15",
+            "stated_value": "€9,600/year",
+            "source_text": "Email Priya the revised Northstar Studio renewal terms worth €9,600/year by 2026-07-15 before Thursday's decision.",
+            "context": "Priya needs revised terms for Northstar Studio's €9,600/year renewal by tomorrow, before Thursday's decision.",
+            "revenue_motion": "close",
+            "revenue_proximity": 5,
+            "urgency": 4,
+            "evidence": "before Thursday's decision",
+            "cost_of_delay": "Delay could remove the revised terms from Thursday's €9,600/year renewal decision.",
+            "missing_fact": null,
+            "priority": 19
+          },
+          {
+            "id": "i2",
+            "item": "Meet Founders Circle members",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Introduce myself to five people in the Founders Circle someday; no meeting or opportunity is active.",
+            "context": "This is generic networking with no active meeting, opportunity, or deadline.",
+            "revenue_motion": "grow",
+            "revenue_proximity": 2,
+            "urgency": 1,
+            "evidence": "no meeting or opportunity is active",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 7
+          }
+        ],
+        "plan": {
+          "money_moves": [
+            {
+              "id": "i1",
+              "why_today": "Advance an active €9,600/year renewal before Thursday's decision.",
+              "next_action": "Email Priya the revised renewal terms now.",
+              "done_when": "Priya has the revised terms and a follow-up is scheduled."
+            }
+          ],
+          "park": [
+            {
+              "id": "i2",
+              "why_safe": "No meeting, opportunity, customer, or deadline is active."
+            }
+          ],
+          "blocked": []
+        },
+        "drafts": [
+          {
+            "id": "i1",
+            "purpose": "money_move",
+            "subject": "Revised Northstar renewal terms",
+            "body": "Hi Priya,\n\nHere are the revised terms for Northstar Studio's €9,600/year renewal. Please let me know if any question needs resolving before Thursday's decision.\n\nBest,\n[Your name]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "paid_delivery_blocked",
+      "synthetic": true,
+      "description": "Paid delivery blocked on a named person's input should produce an unblock request, not a Money Move.",
+      "today": "2026-07-14",
+      "braindump": "The paid Helio migration worth S$7,500 is due 2026-07-15, but testing cannot start until Omar sends the production export. Archive old internal screenshots when convenient; no customer uses them.",
+      "expectations": {
+        "commitments": [
+          {
+            "key": "blocked_delivery",
+            "marker": "paid Helio migration",
+            "stated_value": "S$7,500",
+            "revenue_motion": "deliver"
+          },
+          {
+            "key": "screenshot_cleanup",
+            "marker": "old internal screenshots",
+            "stated_value": null,
+            "revenue_motion": "operate"
+          }
+        ],
+        "partition": {
+          "money_moves": [],
+          "park": ["screenshot_cleanup"],
+          "blocked": ["blocked_delivery"]
+        },
+        "required_money_moves": [],
+        "allowed_money_moves": [],
+        "draft_targets": [
+          {
+            "key": "blocked_delivery",
+            "purpose": "unblock"
+          }
+        ]
+      },
+      "saved_result": {
+        "items": [
+          {
+            "id": "i1",
+            "item": "Complete Helio migration",
+            "type": "task",
+            "due_date": "2026-07-15",
+            "stated_value": "S$7,500",
+            "source_text": "The paid Helio migration worth S$7,500 is due 2026-07-15, but testing cannot start until Omar sends the production export.",
+            "context": "The S$7,500 Helio migration is due tomorrow, but testing depends on Omar's production export."
+          },
+          {
+            "id": "i2",
+            "item": "Archive old screenshots",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Archive old internal screenshots when convenient; no customer uses them.",
+            "context": "This is internal cleanup with no customer use or deadline."
+          }
+        ],
+        "scored": [
+          {
+            "id": "i1",
+            "item": "Complete Helio migration",
+            "type": "task",
+            "due_date": "2026-07-15",
+            "stated_value": "S$7,500",
+            "source_text": "The paid Helio migration worth S$7,500 is due 2026-07-15, but testing cannot start until Omar sends the production export.",
+            "context": "The S$7,500 Helio migration is due tomorrow, but testing depends on Omar's production export.",
+            "revenue_motion": "deliver",
+            "revenue_proximity": 5,
+            "urgency": 4,
+            "evidence": "testing cannot start until Omar sends the production export",
+            "cost_of_delay": "Without the export, the S$7,500 migration cannot enter testing before tomorrow's due date.",
+            "missing_fact": null,
+            "priority": 19
+          },
+          {
+            "id": "i2",
+            "item": "Archive old screenshots",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Archive old internal screenshots when convenient; no customer uses them.",
+            "context": "This is internal cleanup with no customer use or deadline.",
+            "revenue_motion": "operate",
+            "revenue_proximity": 1,
+            "urgency": 1,
+            "evidence": "no customer uses them",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 4
+          }
+        ],
+        "plan": {
+          "money_moves": [],
+          "park": [
+            {
+              "id": "i2",
+              "why_safe": "The internal cleanup has no customer use, deadline, or near-term cash consequence."
+            }
+          ],
+          "blocked": [
+            {
+              "id": "i1",
+              "blocker": "Omar has not sent the production export required for testing.",
+              "unblock_action": "Ask Omar to send the production export by 3pm today or confirm a delivery time.",
+              "message_needed": true
+            }
+          ]
+        },
+        "drafts": [
+          {
+            "id": "i1",
+            "purpose": "unblock",
+            "subject": "Production export needed by 3pm",
+            "body": "Hi Omar,\n\nTesting for the Helio migration cannot start until I have the production export. Could you send it by 3pm today, or confirm when it will be available?\n\nThanks,\n[Your name]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "selected_noncommunication_work",
+      "synthetic": true,
+      "description": "Selecting only non-communication work should produce no drafts.",
+      "today": "2026-07-14",
+      "braindump": "Package Blueacre's signed analytics report worth £3,200 and upload it to their portal by 2026-07-14. Run the routine backup verification by 2026-07-20; there is no stated incident. Refactor the internal color tokens when convenient.",
+      "expectations": {
+        "commitments": [
+          {
+            "key": "paid_report",
+            "marker": "Blueacre's signed analytics report",
+            "stated_value": "£3,200",
+            "revenue_motion": "deliver"
+          },
+          {
+            "key": "backup_check",
+            "marker": "routine backup verification",
+            "stated_value": null,
+            "revenue_motion": "operate"
+          },
+          {
+            "key": "token_refactor",
+            "marker": "internal color tokens",
+            "stated_value": null,
+            "revenue_motion": "operate"
+          }
+        ],
+        "partition": {
+          "money_moves": ["paid_report"],
+          "park": ["backup_check", "token_refactor"],
+          "blocked": []
+        },
+        "required_money_moves": ["paid_report"],
+        "allowed_money_moves": ["paid_report"],
+        "draft_targets": []
+      },
+      "saved_result": {
+        "items": [
+          {
+            "id": "i1",
+            "item": "Upload Blueacre analytics report",
+            "type": "task",
+            "due_date": "2026-07-14",
+            "stated_value": "£3,200",
+            "source_text": "Package Blueacre's signed analytics report worth £3,200 and upload it to their portal by 2026-07-14.",
+            "context": "Blueacre's signed £3,200 analytics report must be packaged and uploaded to its portal today."
+          },
+          {
+            "id": "i2",
+            "item": "Run backup verification",
+            "type": "task",
+            "due_date": "2026-07-20",
+            "stated_value": null,
+            "source_text": "Run the routine backup verification by 2026-07-20; there is no stated incident.",
+            "context": "The routine verification is due later, and no active incident is stated."
+          },
+          {
+            "id": "i3",
+            "item": "Refactor color tokens",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Refactor the internal color tokens when convenient.",
+            "context": "This is an internal refactor with no deadline or customer consequence."
+          }
+        ],
+        "scored": [
+          {
+            "id": "i1",
+            "item": "Upload Blueacre analytics report",
+            "type": "task",
+            "due_date": "2026-07-14",
+            "stated_value": "£3,200",
+            "source_text": "Package Blueacre's signed analytics report worth £3,200 and upload it to their portal by 2026-07-14.",
+            "context": "Blueacre's signed £3,200 analytics report must be packaged and uploaded to its portal today.",
+            "revenue_motion": "deliver",
+            "revenue_proximity": 5,
+            "urgency": 5,
+            "evidence": "upload it to their portal by 2026-07-14",
+            "cost_of_delay": "Delay would miss today's delivery of the £3,200 report.",
+            "missing_fact": null,
+            "priority": 20
+          },
+          {
+            "id": "i2",
+            "item": "Run backup verification",
+            "type": "task",
+            "due_date": "2026-07-20",
+            "stated_value": null,
+            "source_text": "Run the routine backup verification by 2026-07-20; there is no stated incident.",
+            "context": "The routine verification is due later, and no active incident is stated.",
+            "revenue_motion": "operate",
+            "revenue_proximity": 2,
+            "urgency": 2,
+            "evidence": "by 2026-07-20",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 8
+          },
+          {
+            "id": "i3",
+            "item": "Refactor color tokens",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Refactor the internal color tokens when convenient.",
+            "context": "This is an internal refactor with no deadline or customer consequence.",
+            "revenue_motion": "operate",
+            "revenue_proximity": 1,
+            "urgency": 1,
+            "evidence": "when convenient",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 4
+          }
+        ],
+        "plan": {
+          "money_moves": [
+            {
+              "id": "i1",
+              "why_today": "Deliver £3,200 of paid work by today's portal deadline.",
+              "next_action": "Package the signed report and upload it to Blueacre's portal.",
+              "done_when": "The portal confirms the report upload."
+            }
+          ],
+          "park": [
+            {
+              "id": "i2",
+              "why_safe": "The check is due later and no active incident is stated."
+            },
+            {
+              "id": "i3",
+              "why_safe": "Internal refactoring has no deadline, customer, or near-term cash consequence."
+            }
+          ],
+          "blocked": []
+        },
+        "drafts": []
+      }
+    },
+    {
+      "id": "mixed_currency_and_cadence",
+      "synthetic": true,
+      "description": "Independent values in different currencies and cadences must remain exact and unaggregated.",
+      "today": "2026-07-14",
+      "braindump": "Email Nia in accounts payable about invoice AX-8 for US$1,800; it was due 2026-07-13. Email Luca the renewal quote for €750/month by 2026-07-15. Review the internal expense labels later; no report depends on them.",
+      "expectations": {
+        "commitments": [
+          {
+            "key": "dollar_invoice",
+            "marker": "invoice AX-8",
+            "stated_value": "US$1,800",
+            "revenue_motion": "collect"
+          },
+          {
+            "key": "euro_renewal",
+            "marker": "renewal quote",
+            "stated_value": "€750/month",
+            "revenue_motion": "close"
+          },
+          {
+            "key": "expense_labels",
+            "marker": "internal expense labels",
+            "stated_value": null,
+            "revenue_motion": "operate"
+          }
+        ],
+        "partition": {
+          "money_moves": ["dollar_invoice", "euro_renewal"],
+          "park": ["expense_labels"],
+          "blocked": []
+        },
+        "required_money_moves": ["dollar_invoice", "euro_renewal"],
+        "allowed_money_moves": ["dollar_invoice", "euro_renewal"],
+        "draft_targets": [
+          {
+            "key": "dollar_invoice",
+            "purpose": "money_move"
+          },
+          {
+            "key": "euro_renewal",
+            "purpose": "money_move"
+          }
+        ]
+      },
+      "saved_result": {
+        "items": [
+          {
+            "id": "i1",
+            "item": "Chase invoice AX-8",
+            "type": "email_owed",
+            "due_date": "2026-07-13",
+            "stated_value": "US$1,800",
+            "source_text": "Email Nia in accounts payable about invoice AX-8 for US$1,800; it was due 2026-07-13.",
+            "context": "Nia in accounts payable is the contact for overdue invoice AX-8 worth US$1,800."
+          },
+          {
+            "id": "i2",
+            "item": "Send monthly renewal quote",
+            "type": "email_owed",
+            "due_date": "2026-07-15",
+            "stated_value": "€750/month",
+            "source_text": "Email Luca the renewal quote for €750/month by 2026-07-15.",
+            "context": "Luca needs the €750/month renewal quote by tomorrow."
+          },
+          {
+            "id": "i3",
+            "item": "Review expense labels",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Review the internal expense labels later; no report depends on them.",
+            "context": "The label review is internal work with no dependent report or deadline."
+          }
+        ],
+        "scored": [
+          {
+            "id": "i1",
+            "item": "Chase invoice AX-8",
+            "type": "email_owed",
+            "due_date": "2026-07-13",
+            "stated_value": "US$1,800",
+            "source_text": "Email Nia in accounts payable about invoice AX-8 for US$1,800; it was due 2026-07-13.",
+            "context": "Nia in accounts payable is the contact for overdue invoice AX-8 worth US$1,800.",
+            "revenue_motion": "collect",
+            "revenue_proximity": 5,
+            "urgency": 5,
+            "evidence": "due 2026-07-13",
+            "cost_of_delay": "Waiting leaves US$1,800 of overdue cash uncollected.",
+            "missing_fact": null,
+            "priority": 20
+          },
+          {
+            "id": "i2",
+            "item": "Send monthly renewal quote",
+            "type": "email_owed",
+            "due_date": "2026-07-15",
+            "stated_value": "€750/month",
+            "source_text": "Email Luca the renewal quote for €750/month by 2026-07-15.",
+            "context": "Luca needs the €750/month renewal quote by tomorrow.",
+            "revenue_motion": "close",
+            "revenue_proximity": 5,
+            "urgency": 4,
+            "evidence": "€750/month by 2026-07-15",
+            "cost_of_delay": "Delay could hold up the €750/month renewal.",
+            "missing_fact": null,
+            "priority": 19
+          },
+          {
+            "id": "i3",
+            "item": "Review expense labels",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Review the internal expense labels later; no report depends on them.",
+            "context": "The label review is internal work with no dependent report or deadline.",
+            "revenue_motion": "operate",
+            "revenue_proximity": 1,
+            "urgency": 1,
+            "evidence": "no report depends on them",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 4
+          }
+        ],
+        "plan": {
+          "money_moves": [
+            {
+              "id": "i1",
+              "why_today": "Collect US$1,800 that is already overdue.",
+              "next_action": "Email Nia and request the payment date for invoice AX-8.",
+              "done_when": "The payment chase is sent and a follow-up date is set."
+            },
+            {
+              "id": "i2",
+              "why_today": "Advance the €750/month renewal before tomorrow's quote deadline.",
+              "next_action": "Email Luca the €750/month renewal quote.",
+              "done_when": "Luca has the quote and a follow-up is scheduled."
+            }
+          ],
+          "park": [
+            {
+              "id": "i3",
+              "why_safe": "No report depends on the internal labels, and no deadline is stated."
+            }
+          ],
+          "blocked": []
+        },
+        "drafts": [
+          {
+            "id": "i1",
+            "purpose": "money_move",
+            "subject": "Invoice AX-8 payment timing",
+            "body": "Hi Nia,\n\nInvoice AX-8 for US$1,800 was due on 2026-07-13. Could you confirm its payment date or let me know if anything is blocking payment?\n\nThanks,\n[Your name]"
+          },
+          {
+            "id": "i2",
+            "purpose": "money_move",
+            "subject": "Renewal quote",
+            "body": "Hi Luca,\n\nHere is the renewal quote for €750/month, ahead of the 2026-07-15 deadline. Please let me know if you need any adjustment.\n\nBest,\n[Your name]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "compliance_must_not_miss",
+      "synthetic": true,
+      "description": "A hard compliance deadline must displace a later commercial option despite its lower pure-revenue priority.",
+      "today": "2026-07-14",
+      "braindump": "Submit Kestrel's legally required breach notice by 2026-07-14; missing today's deadline can trigger a statutory penalty and customer harm. Email Cedar the final invoice for completed work, US$6,000, by 2026-07-14. Prepare the Aspen warm-lead proposal worth US$8,500 by 2026-07-15. Review Pine's optional sponsorship offer worth US$2,000 by 2026-07-20; Pine said Monday is fine.",
+      "expectations": {
+        "commitments": [
+          {
+            "key": "breach_notice",
+            "marker": "legally required breach notice",
+            "stated_value": null,
+            "revenue_motion": "operate"
+          },
+          {
+            "key": "cedar_invoice",
+            "marker": "Cedar the final invoice",
+            "stated_value": "US$6,000",
+            "revenue_motion": "collect"
+          },
+          {
+            "key": "aspen_proposal",
+            "marker": "Aspen warm-lead proposal",
+            "stated_value": "US$8,500",
+            "revenue_motion": "close"
+          },
+          {
+            "key": "pine_sponsorship",
+            "marker": "Pine's optional sponsorship offer",
+            "stated_value": "US$2,000",
+            "revenue_motion": "close"
+          }
+        ],
+        "partition": {
+          "money_moves": ["breach_notice", "cedar_invoice", "aspen_proposal"],
+          "park": ["pine_sponsorship"],
+          "blocked": []
+        },
+        "required_money_moves": ["breach_notice", "cedar_invoice", "aspen_proposal"],
+        "allowed_money_moves": ["breach_notice", "cedar_invoice", "aspen_proposal"],
+        "draft_targets": [
+          {
+            "key": "cedar_invoice",
+            "purpose": "money_move"
+          }
+        ],
+        "must_not_miss": ["breach_notice"]
+      },
+      "saved_result": {
+        "items": [
+          {
+            "id": "i1",
+            "item": "Submit Kestrel breach notice",
+            "type": "deadline",
+            "due_date": "2026-07-14",
+            "stated_value": null,
+            "source_text": "Submit Kestrel's legally required breach notice by 2026-07-14; missing today's deadline can trigger a statutory penalty and customer harm.",
+            "context": "Kestrel's legally required notice is due today, with a stated statutory penalty and customer-harm consequence."
+          },
+          {
+            "id": "i2",
+            "item": "Send Cedar final invoice",
+            "type": "email_owed",
+            "due_date": "2026-07-14",
+            "stated_value": "US$6,000",
+            "source_text": "Email Cedar the final invoice for completed work, US$6,000, by 2026-07-14.",
+            "context": "Cedar should receive a US$6,000 final invoice for completed work today."
+          },
+          {
+            "id": "i3",
+            "item": "Prepare Aspen proposal",
+            "type": "task",
+            "due_date": "2026-07-15",
+            "stated_value": "US$8,500",
+            "source_text": "Prepare the Aspen warm-lead proposal worth US$8,500 by 2026-07-15.",
+            "context": "The US$8,500 Aspen warm-lead proposal is due tomorrow."
+          },
+          {
+            "id": "i4",
+            "item": "Review Pine sponsorship offer",
+            "type": "task",
+            "due_date": "2026-07-20",
+            "stated_value": "US$2,000",
+            "source_text": "Review Pine's optional sponsorship offer worth US$2,000 by 2026-07-20; Pine said Monday is fine.",
+            "context": "Pine's optional US$2,000 sponsorship offer can be reviewed by Monday."
+          }
+        ],
+        "scored": [
+          {
+            "id": "i2",
+            "item": "Send Cedar final invoice",
+            "type": "email_owed",
+            "due_date": "2026-07-14",
+            "stated_value": "US$6,000",
+            "source_text": "Email Cedar the final invoice for completed work, US$6,000, by 2026-07-14.",
+            "context": "Cedar should receive a US$6,000 final invoice for completed work today.",
+            "revenue_motion": "collect",
+            "revenue_proximity": 5,
+            "urgency": 5,
+            "evidence": "final invoice for completed work, US$6,000",
+            "cost_of_delay": "Delay postpones collection of US$6,000 for completed work.",
+            "missing_fact": null,
+            "priority": 20
+          },
+          {
+            "id": "i3",
+            "item": "Prepare Aspen proposal",
+            "type": "task",
+            "due_date": "2026-07-15",
+            "stated_value": "US$8,500",
+            "source_text": "Prepare the Aspen warm-lead proposal worth US$8,500 by 2026-07-15.",
+            "context": "The US$8,500 Aspen warm-lead proposal is due tomorrow.",
+            "revenue_motion": "close",
+            "revenue_proximity": 4,
+            "urgency": 4,
+            "evidence": "warm-lead proposal worth US$8,500",
+            "cost_of_delay": "Delay risks missing tomorrow's US$8,500 proposal deadline.",
+            "missing_fact": null,
+            "priority": 16
+          },
+          {
+            "id": "i4",
+            "item": "Review Pine sponsorship offer",
+            "type": "task",
+            "due_date": "2026-07-20",
+            "stated_value": "US$2,000",
+            "source_text": "Review Pine's optional sponsorship offer worth US$2,000 by 2026-07-20; Pine said Monday is fine.",
+            "context": "Pine's optional US$2,000 sponsorship offer can be reviewed by Monday.",
+            "revenue_motion": "close",
+            "revenue_proximity": 4,
+            "urgency": 2,
+            "evidence": "Pine said Monday is fine",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 14
+          },
+          {
+            "id": "i1",
+            "item": "Submit Kestrel breach notice",
+            "type": "deadline",
+            "due_date": "2026-07-14",
+            "stated_value": null,
+            "source_text": "Submit Kestrel's legally required breach notice by 2026-07-14; missing today's deadline can trigger a statutory penalty and customer harm.",
+            "context": "Kestrel's legally required notice is due today, with a stated statutory penalty and customer-harm consequence.",
+            "revenue_motion": "operate",
+            "revenue_proximity": 2,
+            "urgency": 5,
+            "evidence": "statutory penalty and customer harm",
+            "cost_of_delay": "Missing today can trigger the stated statutory penalty and customer harm.",
+            "missing_fact": null,
+            "priority": 11
+          }
+        ],
+        "plan": {
+          "money_moves": [
+            {
+              "id": "i1",
+              "why_today": "Avoid today's hard legal deadline, statutory penalty, and customer harm.",
+              "next_action": "Complete and submit the required Kestrel breach notice now.",
+              "done_when": "Submission confirmation for the notice is saved."
+            },
+            {
+              "id": "i2",
+              "why_today": "Issue a US$6,000 invoice for completed work due today.",
+              "next_action": "Email Cedar the final US$6,000 invoice.",
+              "done_when": "Cedar has the invoice and the receivable is logged."
+            },
+            {
+              "id": "i3",
+              "why_today": "Advance an active US$8,500 proposal before tomorrow's deadline.",
+              "next_action": "Prepare the Aspen proposal to a send-ready state.",
+              "done_when": "The proposal is complete and ready to send."
+            }
+          ],
+          "park": [
+            {
+              "id": "i4",
+              "why_safe": "Pine explicitly said Monday is acceptable, so waiting today does not threaten the stated commercial option."
+            }
+          ],
+          "blocked": []
+        },
+        "drafts": [
+          {
+            "id": "i2",
+            "purpose": "money_move",
+            "subject": "Final invoice for completed work",
+            "body": "Hi Cedar team,\n\nAttached is the final US$6,000 invoice for the completed work. Please confirm receipt and let me know if anything else is needed for processing.\n\nBest,\n[Your name]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rank_changing_missing_fact",
+      "synthetic": true,
+      "description": "An absent decision date should be identified as the fact most likely to change an opportunity's rank.",
+      "today": "2026-07-14",
+      "braindump": "Email Imani about Quill's unsigned proposal; my notes do not include Quill's decision date. Email Rowan the US$3,000 expansion order form by 2026-07-15. Sort old bookmarks when convenient.",
+      "expectations": {
+        "commitments": [
+          {
+            "key": "quill_proposal",
+            "marker": "Quill's unsigned proposal",
+            "stated_value": null,
+            "revenue_motion": "close"
+          },
+          {
+            "key": "expansion_order",
+            "marker": "expansion order form",
+            "stated_value": "US$3,000",
+            "revenue_motion": "close"
+          },
+          {
+            "key": "bookmark_admin",
+            "marker": "old bookmarks",
+            "stated_value": null,
+            "revenue_motion": "operate"
+          }
+        ],
+        "partition": {
+          "money_moves": ["expansion_order", "quill_proposal"],
+          "park": ["bookmark_admin"],
+          "blocked": []
+        },
+        "required_money_moves": ["expansion_order", "quill_proposal"],
+        "allowed_money_moves": ["expansion_order", "quill_proposal"],
+        "draft_targets": [
+          {
+            "key": "expansion_order",
+            "purpose": "money_move"
+          },
+          {
+            "key": "quill_proposal",
+            "purpose": "money_move"
+          }
+        ],
+        "missing_fact_contains": {
+          "quill_proposal": ["decision date", "decision timing"]
+        }
+      },
+      "saved_result": {
+        "items": [
+          {
+            "id": "i1",
+            "item": "Follow up on Quill proposal",
+            "type": "email_owed",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Email Imani about Quill's unsigned proposal; my notes do not include Quill's decision date.",
+            "context": "Imani should be contacted about Quill's unsigned proposal, but Quill's decision date is absent."
+          },
+          {
+            "id": "i2",
+            "item": "Send expansion order form",
+            "type": "email_owed",
+            "due_date": "2026-07-15",
+            "stated_value": "US$3,000",
+            "source_text": "Email Rowan the US$3,000 expansion order form by 2026-07-15.",
+            "context": "Rowan needs a US$3,000 expansion order form by tomorrow."
+          },
+          {
+            "id": "i3",
+            "item": "Sort old bookmarks",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Sort old bookmarks when convenient.",
+            "context": "This is optional internal cleanup with no deadline."
+          }
+        ],
+        "scored": [
+          {
+            "id": "i2",
+            "item": "Send expansion order form",
+            "type": "email_owed",
+            "due_date": "2026-07-15",
+            "stated_value": "US$3,000",
+            "source_text": "Email Rowan the US$3,000 expansion order form by 2026-07-15.",
+            "context": "Rowan needs a US$3,000 expansion order form by tomorrow.",
+            "revenue_motion": "close",
+            "revenue_proximity": 5,
+            "urgency": 4,
+            "evidence": "US$3,000 expansion order form by 2026-07-15",
+            "cost_of_delay": "Delay could hold up the US$3,000 expansion.",
+            "missing_fact": null,
+            "priority": 19
+          },
+          {
+            "id": "i1",
+            "item": "Follow up on Quill proposal",
+            "type": "email_owed",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Email Imani about Quill's unsigned proposal; my notes do not include Quill's decision date.",
+            "context": "Imani should be contacted about Quill's unsigned proposal, but Quill's decision date is absent.",
+            "revenue_motion": "close",
+            "revenue_proximity": 4,
+            "urgency": 1,
+            "evidence": "unsigned proposal",
+            "cost_of_delay": "The proposal may remain unsigned, but no decision deadline is stated.",
+            "missing_fact": "Quill's decision date is unknown.",
+            "priority": 13
+          },
+          {
+            "id": "i3",
+            "item": "Sort old bookmarks",
+            "type": "task",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Sort old bookmarks when convenient.",
+            "context": "This is optional internal cleanup with no deadline.",
+            "revenue_motion": "operate",
+            "revenue_proximity": 1,
+            "urgency": 1,
+            "evidence": "when convenient",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 4
+          }
+        ],
+        "plan": {
+          "money_moves": [
+            {
+              "id": "i2",
+              "why_today": "Advance a US$3,000 expansion before tomorrow's deadline.",
+              "next_action": "Email Rowan the expansion order form now.",
+              "done_when": "Rowan has the form and a follow-up is scheduled."
+            },
+            {
+              "id": "i1",
+              "why_today": "Advance an unsigned proposal and obtain the missing decision timing.",
+              "next_action": "Email Imani to ask for Quill's decision date and the next approval step.",
+              "done_when": "The follow-up is sent and a response reminder is set."
+            }
+          ],
+          "park": [
+            {
+              "id": "i3",
+              "why_safe": "Bookmark cleanup has no deadline, customer, or near-term cash consequence."
+            }
+          ],
+          "blocked": []
+        },
+        "drafts": [
+          {
+            "id": "i2",
+            "purpose": "money_move",
+            "subject": "US$3,000 expansion order form",
+            "body": "Hi Rowan,\n\nAttached is the US$3,000 expansion order form ahead of the 2026-07-15 deadline. Please let me know if anything needs adjustment.\n\nBest,\n[Your name]"
+          },
+          {
+            "id": "i1",
+            "purpose": "money_move",
+            "subject": "Quill proposal decision timing",
+            "body": "Hi Imani,\n\nI'm following up on Quill's unsigned proposal. Could you share the expected decision date and the next approval step?\n\nBest,\n[Your name]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "parked_email_no_draft",
+      "synthetic": true,
+      "description": "A consciously parked email must not receive a draft.",
+      "today": "2026-07-14",
+      "braindump": "Email the community newsletter editor about an optional profile whenever convenient; no deadline or business opportunity is attached. Finish and upload Aster's paid audit worth A$4,400 by 2026-07-14.",
+      "expectations": {
+        "commitments": [
+          {
+            "key": "optional_profile",
+            "marker": "community newsletter editor",
+            "stated_value": null,
+            "revenue_motion": "grow"
+          },
+          {
+            "key": "paid_audit",
+            "marker": "Aster's paid audit",
+            "stated_value": "A$4,400",
+            "revenue_motion": "deliver"
+          }
+        ],
+        "partition": {
+          "money_moves": ["paid_audit"],
+          "park": ["optional_profile"],
+          "blocked": []
+        },
+        "required_money_moves": ["paid_audit"],
+        "allowed_money_moves": ["paid_audit"],
+        "draft_targets": []
+      },
+      "saved_result": {
+        "items": [
+          {
+            "id": "i1",
+            "item": "Reply about optional profile",
+            "type": "email_owed",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Email the community newsletter editor about an optional profile whenever convenient; no deadline or business opportunity is attached.",
+            "context": "The optional newsletter profile has no deadline or active business opportunity."
+          },
+          {
+            "id": "i2",
+            "item": "Upload Aster paid audit",
+            "type": "task",
+            "due_date": "2026-07-14",
+            "stated_value": "A$4,400",
+            "source_text": "Finish and upload Aster's paid audit worth A$4,400 by 2026-07-14.",
+            "context": "Aster's A$4,400 paid audit must be finished and uploaded today."
+          }
+        ],
+        "scored": [
+          {
+            "id": "i2",
+            "item": "Upload Aster paid audit",
+            "type": "task",
+            "due_date": "2026-07-14",
+            "stated_value": "A$4,400",
+            "source_text": "Finish and upload Aster's paid audit worth A$4,400 by 2026-07-14.",
+            "context": "Aster's A$4,400 paid audit must be finished and uploaded today.",
+            "revenue_motion": "deliver",
+            "revenue_proximity": 5,
+            "urgency": 5,
+            "evidence": "paid audit worth A$4,400 by 2026-07-14",
+            "cost_of_delay": "Delay misses today's paid-audit delivery.",
+            "missing_fact": null,
+            "priority": 20
+          },
+          {
+            "id": "i1",
+            "item": "Reply about optional profile",
+            "type": "email_owed",
+            "due_date": null,
+            "stated_value": null,
+            "source_text": "Email the community newsletter editor about an optional profile whenever convenient; no deadline or business opportunity is attached.",
+            "context": "The optional newsletter profile has no deadline or active business opportunity.",
+            "revenue_motion": "grow",
+            "revenue_proximity": 2,
+            "urgency": 1,
+            "evidence": "no deadline or business opportunity is attached",
+            "cost_of_delay": "No material cost of waiting is stated.",
+            "missing_fact": null,
+            "priority": 7
+          }
+        ],
+        "plan": {
+          "money_moves": [
+            {
+              "id": "i2",
+              "why_today": "Deliver A$4,400 of paid work by today's deadline.",
+              "next_action": "Finish the audit and upload it to Aster's delivery portal.",
+              "done_when": "The audit upload is confirmed."
+            }
+          ],
+          "park": [
+            {
+              "id": "i1",
+              "why_safe": "The optional profile has no deadline or active business opportunity."
+            }
+          ],
+          "blocked": []
+        },
+        "drafts": []
+      }
+    }
+  ]
+}
