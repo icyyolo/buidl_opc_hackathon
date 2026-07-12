@@ -41,7 +41,7 @@ export function DraftCard({ draft }: DraftCardProps) {
     <aside className="draft-card" aria-label={`Prepared message: ${draft.subject}`}>
       <div className="draft-heading">
         <div>
-          <p className="eyebrow">Ready to send</p>
+          <p className="eyebrow">Ready to review</p>
           <h4>{draft.subject}</h4>
         </div>
         <button

@@ -99,25 +99,28 @@ export default function App() {
             Revenue <strong>Radar</strong>
           </span>
         </a>
-        <p>Explainable revenue triage for one-person companies</p>
+        <p>Three moves. Zero dropped commitments.</p>
       </header>
 
       <main id="top">
         <section className="hero">
           <div className="hero-copy">
-            <p className="eyebrow">Your 9am operating brief</p>
+            <p className="eyebrow">Explainable revenue triage for one-person companies</p>
             <h1>
-              Your business, ranked by <em>revenue</em> — not noise.
+              Paste the chaos. Find the <em>3 moves</em> that can move cash today.
             </h1>
             <p className="hero-lede">
-              Paste the messy list. Revenue Radar finds the three commitments that move cash,
-              explains the economic logic, and prepares the messages to act.
+              Revenue Chief proves what matters from your own words, parks the safe work, unblocks
+              what is stuck, and prepares only the messages needed to act.
             </p>
-            <div className="proof-strip" aria-label="How Revenue Radar decides">
-              <span>Revenue × 3</span>
-              <span>Grounded evidence</span>
-              <span>Zero setup</span>
-            </div>
+            {viewState !== 'loading' && (
+              <div className="proof-strip" aria-label="How Revenue Radar decides">
+                <span>3 Money Moves</span>
+                <span>Visible scoring</span>
+                <span>Verbatim evidence</span>
+                <span>Ready-to-review messages</span>
+              </div>
+            )}
           </div>
 
           <form className="intake-card" onSubmit={handleSubmit} aria-busy={viewState === 'loading'}>
