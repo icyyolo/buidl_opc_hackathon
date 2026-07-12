@@ -1,17 +1,9 @@
 import type { CSSProperties } from 'react'
-import { REVENUE_MOTIONS, type RevenueMotion, type ScoredItem } from '../types'
+import { REVENUE_MOTIONS, type ScoredItem } from '../types'
+import { MOTION_DETAILS, MotionMeaning } from './MetricGlossary'
 
 interface CashLeakRadarProps {
   items: ScoredItem[]
-}
-
-const MOTION_DETAILS: Record<RevenueMotion, { label: string; meaning: string }> = {
-  collect: { label: 'Collect', meaning: 'Earned but uncollected' },
-  close: { label: 'Close', meaning: 'Ready to win or renew' },
-  deliver: { label: 'Deliver', meaning: 'Paid work to ship' },
-  retain: { label: 'Retain', meaning: 'Revenue at risk' },
-  grow: { label: 'Grow', meaning: 'Pipeline for later' },
-  operate: { label: 'Operate', meaning: 'No direct cash motion' },
 }
 
 function commitmentCount(count: number): string {
@@ -57,7 +49,9 @@ export function CashLeakRadar({ items }: CashLeakRadarProps) {
               aria-label={`${label}: ${commitmentCount(motionItems.length)}`}
             >
               <div className="radar-motion-topline">
-                <strong>{label}</strong>
+                <MotionMeaning motion={motion}>
+                  {(triggerProps) => <strong {...triggerProps}>{label}</strong>}
+                </MotionMeaning>
                 <span>{commitmentCount(motionItems.length)}</span>
               </div>
               <p className="radar-motion-meaning">{meaning}</p>

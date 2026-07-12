@@ -3,9 +3,17 @@
   "configurations": [
     {
       "name": "frontend",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
-      "port": 5173
+      "runtimeExecutable": "wsl.exe",
+      "runtimeArgs": [
+        "-d",
+        "ubuntu",
+        "--",
+        "bash",
+        "-lc",
+        "cd /home/mx/buidl_opc_hackathon/frontend && npm run dev -- --host --port 5174"
+      ],
+      "port": 5174,
+      "autoPort": true
     },
     {
       "name": "backend",
