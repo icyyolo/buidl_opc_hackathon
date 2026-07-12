@@ -13,8 +13,8 @@ from app.pipeline import (
     ExtractOutput,
     Item,
     MoneyMove,
+    ScoreJudgment,
     ScoreOutput,
-    ScoredItem,
 )
 
 
@@ -35,8 +35,8 @@ def test_process_route_runs_the_complete_pipeline_with_scripted_model_outputs(
         ExtractOutput: ExtractOutput(items=[item]),
         ScoreOutput: ScoreOutput(
             scored=[
-                ScoredItem(
-                    **item.model_dump(mode="python"),
+                ScoreJudgment(
+                    id=item.id,
                     revenue_motion="close",
                     revenue_proximity=5,
                     urgency=5,

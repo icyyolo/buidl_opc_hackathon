@@ -31,6 +31,29 @@ function IntroPlaceholder() {
   )
 }
 
+function LoadingPanel() {
+  return (
+    <section className="loading-panel" aria-label="Revenue plan loading">
+      <div className="radar-loader" aria-hidden="true">
+        <span className="radar-sweep" />
+        <span className="radar-blip radar-blip-one" />
+        <span className="radar-blip radar-blip-two" />
+        <span className="radar-blip radar-blip-three" />
+      </div>
+      <div className="loading-panel-copy">
+        <p className="eyebrow">Revenue scan in progress</p>
+        <h2>Mapping the shortest path to cash.</h2>
+        <p className="loading-status" role="status" aria-live="polite" aria-atomic="true">
+          Finding today's Money Moves…
+        </p>
+        <p className="loading-note">
+          One complete, evidence-backed plan will appear here when the analysis is ready.
+        </p>
+      </div>
+    </section>
+  )
+}
+
 export default function App() {
   const [braindump, setBraindump] = useState(SAMPLE_BRAINDUMP)
   const [viewState, setViewState] = useState<ViewState>('idle')
@@ -134,13 +157,6 @@ export default function App() {
               </button>
             </div>
 
-            {viewState === 'loading' && (
-              <div className="loading-state" role="status" aria-live="polite">
-                <span className="spinner" aria-hidden="true" />
-                <span>Finding today's Money Moves…</span>
-              </div>
-            )}
-
             {viewState === 'error' && error && (
               <div className="error-state" role="alert">
                 <strong>We could not build this revenue plan.</strong>
@@ -157,6 +173,8 @@ export default function App() {
             </p>
             <Results data={data} />
           </>
+        ) : viewState === 'loading' ? (
+          <LoadingPanel />
         ) : viewState === 'idle' ? (
           <IntroPlaceholder />
         ) : null}

@@ -19,6 +19,8 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstra
 load_dotenv()
 
 MODEL = "gpt-5.6-luna"
+# GPT-5.6 otherwise defaults to medium; these bounded, validated stages favor latency.
+REASONING_EFFORT = "low"
 
 PipelineStage = Literal["INPUT", "EXTRACT", "SCORE", "DECIDE", "PREPARE"]
 ItemId = Annotated[str, StringConstraints(pattern=r"^i[1-9][0-9]*$")]
@@ -33,14 +35,6 @@ def _nonblank_text(value: str) -> str:
 NonEmptyText = Annotated[str, AfterValidator(_nonblank_text)]
 StrictScore = Annotated[int, Field(strict=True, ge=1, le=5)]
 
-_ITEM_FIELDS = (
-    "item",
-    "type",
-    "due_date",
-    "stated_value",
-    "source_text",
-    "context",
-)
 _ISO_DATE_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 
 
@@ -130,8 +124,33 @@ class ScoredItem(Item):
         return value
 
 
+# Internal model output; the server joins it to the validated extracted item.
+class ScoreJudgment(_StrictModel):
+    id: ItemId
+    revenue_motion: Literal["collect", "close", "deliver", "retain", "grow", "operate"]
+    revenue_proximity: StrictScore
+    urgency: StrictScore
+    evidence: NonEmptyText
+    cost_of_delay: NonEmptyText
+    missing_fact: str | None
+
+    @field_validator("evidence", "cost_of_delay")
+    @classmethod
+    def score_text_cannot_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("score explanation fields must be nonblank")
+        return value
+
+    @field_validator("missing_fact")
+    @classmethod
+    def missing_fact_cannot_be_blank(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("missing_fact must be nonblank when supplied")
+        return value
+
+
 class ScoreOutput(_StrictModel):
-    scored: list[ScoredItem]
+    scored: list[ScoreJudgment]
 
 
 class MoneyMove(_StrictModel):
@@ -189,6 +208,7 @@ def _call(system: str, user: str, schema: type[OutputT]) -> OutputT:
 
     response = _get_client().responses.parse(
         model=MODEL,
+        reasoning={"effort": REASONING_EFFORT},
         input=[
             {"role": "system", "content": system},
             {"role": "user", "content": user},
@@ -277,11 +297,12 @@ ROLE: Revenue Prioritizer. For EACH item, classify the money motion, assess two 
     \"Exact invoice amount is unknown\"), or null when the input is sufficient. Never invent the
     missing answer.
 
-Do NOT compute a total or rank. Preserve id, item, type, due_date, stated_value, source_text,
-and context unchanged.
+Do NOT compute a total or rank. Preserve each id unchanged. The server will join each score
+back onto its already-validated item, so do not repeat item, type, due_date, stated_value,
+source_text, or context in this response.
 
-Return JSON: { \"scored\": [ {id, item, type, due_date, stated_value, source_text, context,
-  revenue_motion, revenue_proximity, urgency, evidence, cost_of_delay, missing_fact}, ... ] }"""
+Return JSON: { \"scored\": [ {id, revenue_motion, revenue_proximity, urgency, evidence,
+  cost_of_delay, missing_fact}, ... ] }"""
 
 DECIDE = """
 
@@ -411,9 +432,6 @@ def _validate_scored(
     for scored_item in scored:
         item_id = scored_item["id"]
         extracted = extracted_by_id[item_id]
-        for field in _ITEM_FIELDS:
-            if scored_item[field] != extracted[field]:
-                _validation_error("SCORE", f"changed inherited field {field} for {item_id}")
         proximity = scored_item["revenue_proximity"]
         urgency = scored_item["urgency"]
         if type(proximity) is not int or not 1 <= proximity <= 5:
@@ -423,7 +441,7 @@ def _validate_scored(
         evidence = scored_item["evidence"]
         if (
             not evidence.strip()
-            or evidence not in scored_item["source_text"]
+            or evidence not in extracted["source_text"]
             or evidence not in braindump
         ):
             _validation_error(
@@ -497,8 +515,16 @@ def run_pipeline(braindump: str, today: str) -> dict[str, Any]:
         json.dumps({"items": items}, ensure_ascii=False),
         ScoreOutput,
     )
-    scored = [item.model_dump(mode="json") for item in score_output.scored]
-    _validate_scored(items, scored, braindump)
+    judgments = [item.model_dump(mode="json") for item in score_output.scored]
+    _validate_scored(items, judgments, braindump)
+
+    extracted_by_id = {item["id"]: item for item in items}
+    scored = [
+        ScoredItem.model_validate(
+            {**extracted_by_id[judgment["id"]], **judgment}
+        ).model_dump(mode="json")
+        for judgment in judgments
+    ]
 
     extraction_order = {item["id"]: index for index, item in enumerate(items)}
     for scored_item in scored:
