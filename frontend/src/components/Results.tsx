@@ -1,4 +1,4 @@
-import { useMemo, type Ref } from 'react'
+import { useState, useMemo, type Ref } from 'react'
 import type {
   BlockedItem,
   Draft,
@@ -32,11 +32,13 @@ function SectionHeading({
   kicker,
   title,
   description,
+  rule,
 }: {
   id: string
   kicker: string
   title: string
   description: string
+  rule?: string
 }) {
   return (
     <header className="section-heading">
@@ -44,8 +46,32 @@ function SectionHeading({
       <div>
         <h2 id={id}>{title}</h2>
         <p>{description}</p>
+        {rule && <p className="section-rule">{rule}</p>}
       </div>
     </header>
+  )
+}
+
+function HowToReadStrip() {
+  const [dismissed, setDismissed] = useState(false)
+
+  if (dismissed) return null
+
+  return (
+    <div className="how-to-read-strip" role="note" aria-label="How to read this plan">
+      <p>
+        Every commitment is scored revenue proximity × 3 + urgency, then sorted into 3 Money
+        Moves, safely parked, or blocked.
+      </p>
+      <button
+        type="button"
+        className="how-to-read-dismiss"
+        onClick={() => setDismissed(true)}
+        aria-label="Dismiss explanation"
+      >
+        ×
+      </button>
+    </div>
   )
 }
 
@@ -215,6 +241,7 @@ export function Results({ data, resultsRef, resultsHeadingRef }: ResultsProps) {
     >
       <div className="results-overview">
         <CompleteAccounting data={data} headingRef={resultsHeadingRef} />
+        <HowToReadStrip />
         <CashLeakRadar items={data.scored} />
       </div>
 
@@ -227,6 +254,7 @@ export function Results({ data, resultsRef, resultsHeadingRef }: ResultsProps) {
           kicker="Decide"
           title="Today's 3 Money Moves"
           description="The commitments with the shortest, strongest path to cash — in the order to act."
+          rule="Belongs here: the highest-scoring commitments that can move or protect cash today."
         />
         {data.plan.money_moves.length > 0 ? (
           <div className="money-grid" data-testid="money-move-list">
@@ -258,6 +286,7 @@ export function Results({ data, resultsRef, resultsHeadingRef }: ResultsProps) {
           kicker="Unstick"
           title="Blocked → Unblock"
           description="Do not start the task yet. Move the dependency that is holding it back."
+          rule="Belongs here: it would score high, but a named dependency must move first."
         />
         {data.plan.blocked.length > 0 ? (
           <div className="blocked-list">
@@ -288,6 +317,7 @@ export function Results({ data, resultsRef, resultsHeadingRef }: ResultsProps) {
           kicker="Protect focus"
           title="Parked Safely"
           description="Deliberate not-today decisions, with the reason waiting is economically safe."
+          rule="Belongs here: deliberately not today, with the reason waiting is economically safe."
         />
         {data.plan.park.length > 0 ? (
           <div className="parked-grid">

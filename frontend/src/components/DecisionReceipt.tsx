@@ -1,8 +1,14 @@
 import type { ScoredItem } from '../types'
+import { InfoDisclosure, MotionMeaning } from './MetricGlossary'
 
 interface DecisionReceiptProps {
   item: ScoredItem
 }
+
+const PRIORITY_EXPLANATION =
+  "Both inputs run 1 (lowest) to 5 (highest). Revenue proximity counts triple because how " +
+  'directly a commitment moves cash outranks how soon it is due, so a higher total moves ' +
+  "earlier in today's order."
 
 export function DecisionReceipt({ item }: DecisionReceiptProps) {
   return (
@@ -15,12 +21,17 @@ export function DecisionReceipt({ item }: DecisionReceiptProps) {
           <p className="eyebrow">Proof behind the ranking</p>
           <h4>Decision Receipt</h4>
         </div>
-        <span
-          className={`motion-badge motion-${item.revenue_motion}`}
-          aria-label={`Revenue motion: ${item.revenue_motion}`}
-        >
-          {item.revenue_motion.toUpperCase()}
-        </span>
+        <MotionMeaning motion={item.revenue_motion}>
+          {(triggerProps) => (
+            <span
+              className={`motion-badge motion-${item.revenue_motion}`}
+              aria-label={`Revenue motion: ${item.revenue_motion}`}
+              {...triggerProps}
+            >
+              {item.revenue_motion.toUpperCase()}
+            </span>
+          )}
+        </MotionMeaning>
       </div>
 
       <div className="meta-row" aria-label="Validated decision inputs">
@@ -31,6 +42,18 @@ export function DecisionReceipt({ item }: DecisionReceiptProps) {
       <p className="score-formula">
         Revenue proximity {item.revenue_proximity} × 3 + urgency {item.urgency} = priority{' '}
         {item.priority}
+        <InfoDisclosure description={PRIORITY_EXPLANATION}>
+          {(triggerProps) => (
+            <button
+              type="button"
+              className="formula-help"
+              aria-label="How the priority score is calculated"
+              {...triggerProps}
+            >
+              ?
+            </button>
+          )}
+        </InfoDisclosure>
       </p>
 
       <div className="evidence-panel">
