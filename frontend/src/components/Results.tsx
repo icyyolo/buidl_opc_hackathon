@@ -8,7 +8,10 @@ import type {
   RevenueMotion,
   ScoredItem,
 } from '../types'
+import { CashLeakRadar } from './CashLeakRadar'
+import { DecisionReceipt } from './DecisionReceipt'
 import { DraftCard } from './DraftCard'
+import './revenue-insights.css'
 
 interface ResultsProps {
   data: ProcessResponse
@@ -44,6 +47,26 @@ function SectionHeading({
   )
 }
 
+function CompleteAccounting({ data }: { data: ProcessResponse }) {
+  const moneyMoveCount = data.plan.money_moves.length
+  const blockedCount = data.plan.blocked.length
+  const parkedCount = data.plan.park.length
+  const accountedCount = moneyMoveCount + blockedCount + parkedCount
+
+  return (
+    <div className="complete-accounting" role="region" aria-label="Complete accounting">
+      <p className="eyebrow">Complete plan accounting</p>
+      <p className="accounting-summary">
+        <strong>
+          {moneyMoveCount} Money {moneyMoveCount === 1 ? 'Move' : 'Moves'}
+        </strong>{' '}
+        · {blockedCount} blocked · {parkedCount} safely parked · {accountedCount}{' '}
+        {accountedCount === 1 ? 'commitment' : 'commitments'} accounted for
+      </p>
+    </div>
+  )
+}
+
 function MoneyMoveCard({
   move,
   item,
@@ -61,24 +84,11 @@ function MoneyMoveCard({
         <span className="move-number" aria-label={`Money Move ${position}`}>
           {String(position).padStart(2, '0')}
         </span>
-        <MotionBadge motion={item.revenue_motion} />
+        {item.due_date && <span className="money-card-due">Due {item.due_date}</span>}
       </div>
 
       <h3>{item.item}</h3>
-      <div className="meta-row" aria-label="Commitment details">
-        {item.stated_value && <span className="value-chip">{item.stated_value}</span>}
-        <span className="priority-chip">Priority {item.priority}</span>
-        {item.due_date && <span>Due {item.due_date}</span>}
-      </div>
-
-      <div className="evidence-panel">
-        <p className="micro-label">Source evidence</p>
-        <blockquote>“{item.evidence}”</blockquote>
-        <p className="cost-line">
-          <span>Cost of delay</span>
-          {item.cost_of_delay}
-        </p>
-      </div>
+      <DecisionReceipt item={item} />
 
       <dl className="decision-list">
         <div>
@@ -95,19 +105,20 @@ function MoneyMoveCard({
         </div>
       </dl>
 
-      {item.missing_fact && (
-        <p className="uncertainty-note">
-          <span>Open question</span>
-          {item.missing_fact}
-        </p>
-      )}
-
       {draft?.purpose === 'money_move' && <DraftCard draft={draft} />}
     </article>
   )
 }
 
-function BlockedCard({ item, blocked, draft }: { item: ScoredItem; blocked: BlockedItem; draft?: Draft }) {
+function BlockedCard({
+  item,
+  blocked,
+  draft,
+}: {
+  item: ScoredItem
+  blocked: BlockedItem
+  draft?: Draft
+}) {
   return (
     <article className="blocked-card" data-commitment-id={item.id}>
       <div className="blocked-summary">
@@ -119,6 +130,14 @@ function BlockedCard({ item, blocked, draft }: { item: ScoredItem; blocked: Bloc
             <p className="eyebrow">Waiting on an input</p>
             <h3>{item.item}</h3>
           </div>
+        </div>
+        <div className="blocked-meta-row" aria-label="Blocked commitment details">
+          <MotionBadge motion={item.revenue_motion} />
+          <span className="priority-chip">Priority {item.priority}</span>
+        </div>
+        <div className="blocked-evidence">
+          <p className="micro-label">Verbatim evidence</p>
+          <blockquote>“{item.evidence}”</blockquote>
         </div>
         <dl className="blocked-details">
           <div>
@@ -144,21 +163,39 @@ function ParkedCard({ item, parked }: { item: ScoredItem; parked: ParkItem }) {
         {item.due_date && <span>Due {item.due_date}</span>}
       </div>
       <h3>{item.item}</h3>
-      <p>{parked.why_safe}</p>
+      <div className="parked-meta-row" aria-label="Parked commitment details">
+        <span className="priority-chip">Priority {item.priority}</span>
+        {item.stated_value !== null && <span className="value-chip">{item.stated_value}</span>}
+      </div>
+      <div className="parked-evidence">
+        <p className="micro-label">Verbatim evidence</p>
+        <blockquote>“{item.evidence}”</blockquote>
+      </div>
+      <div className="why-safe-panel">
+        <p className="micro-label">Why this is safe to park</p>
+        <p>{parked.why_safe}</p>
+      </div>
     </article>
   )
 }
 
 export function Results({ data }: ResultsProps) {
-  const { scoredById, draftById } = useMemo(() => {
+  const { scoredById, draftByTarget } = useMemo(() => {
     return {
       scoredById: new Map(data.scored.map((item) => [item.id, item])),
-      draftById: new Map(data.drafts.map((draft) => [draft.id, draft])),
+      draftByTarget: new Map(
+        data.drafts.map((draft) => [`${draft.id}:${draft.purpose}`, draft]),
+      ),
     }
   }, [data])
 
   return (
     <div className="results" role="region" aria-label="Revenue plan results">
+      <div className="results-overview">
+        <CompleteAccounting data={data} />
+        <CashLeakRadar items={data.scored} />
+      </div>
+
       <section className="result-section money-section" aria-labelledby="money-moves-heading">
         <SectionHeading
           id="money-moves-heading"
@@ -176,7 +213,7 @@ export function Results({ data }: ResultsProps) {
                   key={move.id}
                   move={move}
                   item={item}
-                  draft={draftById.get(move.id)}
+                  draft={draftByTarget.get(`${move.id}:money_move`)}
                   position={index + 1}
                 />
               )
@@ -204,7 +241,7 @@ export function Results({ data }: ResultsProps) {
                   key={blocked.id}
                   item={item}
                   blocked={blocked}
-                  draft={draftById.get(blocked.id)}
+                  draft={draftByTarget.get(`${blocked.id}:unblock`)}
                 />
               )
             })}
