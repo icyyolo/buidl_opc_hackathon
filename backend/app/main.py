@@ -7,6 +7,7 @@ import re
 from datetime import date
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -16,6 +17,16 @@ logger = logging.getLogger(__name__)
 _ISO_DATE_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 
 app = FastAPI(title="Revenue Radar API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
 
 class ProcessIn(BaseModel):
@@ -55,22 +66,27 @@ def process(body: ProcessIn) -> dict | JSONResponse:
     try:
         return run_pipeline(body.braindump, body.today)
     except PipelineError as exc:
-        logger.exception("Revenue Radar pipeline failed in %s", exc.stage)
+        logger.error("Revenue Radar pipeline failed in %s", exc.stage)
         return JSONResponse(
             status_code=500,
             content={
                 "error": "pipeline_failed",
                 "stage": exc.stage,
                 "message": exc.message,
+                "detail": f"{exc.stage} stage failed: {exc.message}",
             },
         )
-    except Exception:
-        logger.exception("Unexpected Revenue Radar pipeline failure")
+    except Exception as exc:
+        logger.error(
+            "Unexpected Revenue Radar pipeline failure (%s)",
+            type(exc).__name__,
+        )
         return JSONResponse(
             status_code=500,
             content={
                 "error": "pipeline_failed",
                 "stage": "UNKNOWN",
                 "message": "Unexpected pipeline failure",
+                "detail": "UNKNOWN stage failed: Unexpected pipeline failure",
             },
         )
